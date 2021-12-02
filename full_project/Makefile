@@ -7,16 +7,27 @@
 #  Modified by Klas Holmberg, hed16khg@cs.umu.se
 #
 SRC = ./src
-OUT = ./out
+INCLUDES = ./include
 TARGET = project
+IMGUI_DIR = $(SRC)/ImGui
 
-#OBJS = $(OUT)/main.o $(OUT)/shader.o $(OUT)/texture.o \
-    $(OUT)/material.o $(OUT)/mesh.o $(OUT)/primitive.o \
-    $(OUT)/openglwindow.o $(OUT)/mymodel.o
-
-OBJS = $(SRC)/main.o $(SRC)/shader.o $(SRC)/texture.o \
-	$(SRC)/material.o $(SRC)/mesh.o $(SRC)/primitive.o \
-	$(SRC)/openglwindow.o $(SRC)/mymodel.o
+OBJS = 	\
+	$(SRC)/main.o \
+	$(SRC)/openglwindow.o \
+	$(SRC)/shader.o \
+	$(SRC)/texture.o \
+	$(SRC)/material.o \
+	$(SRC)/mesh.o \
+	$(SRC)/primitive.o \
+	$(SRC)/mymodel.o \
+	$(IMGUI_DIR)/imgui.o \
+	$(IMGUI_DIR)/imgui_demo.o \
+	$(IMGUI_DIR)/imgui_draw.o \
+	$(IMGUI_DIR)/imgui_tables.o \
+	$(IMGUI_DIR)/imgui_widgets.o \
+	$(IMGUI_DIR)/imgui_impl_glfw.o \
+	$(IMGUI_DIR)/imgui_impl_opengl3.o \
+	$(IMGUI_DIR)/ImGuiFileDialog/ImGuiFileDialog.o
 
 CXX = g++
 
@@ -25,7 +36,7 @@ DBFLAGS = -O0 -g3 -ggdb3 -fno-inline
 WFLAGS  = -Wall -std=c++11 #-Wextra
 
 # Uncomment if you have local libraries or headers in subfolders lib and include
-IFLAGS = -Iinclude
+IFLAGS = -I$(INCLUDES) -I$(IMGUI_DIR) -I$(IMGUI_DIR)/ImGuiFileDialog
 LFLAGS = -Llibs
 
 DEFS    = -DIMGUI_IMPL_OPENGL_LOADER_GL3W

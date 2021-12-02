@@ -32,11 +32,17 @@ OpenGLWindow::OpenGLWindow(
     this->initGLFW();
     this->initWindow(title, resizable);
     this->initGLEW();
+    this->initImGui();
     this->initOpenGLOptions();
 
 }
 
 OpenGLWindow::~OpenGLWindow(void){
+    // Cleanup ImGui
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwDestroyWindow(this->window);
     glfwTerminate();
 
@@ -124,10 +130,23 @@ void OpenGLWindow::loadNewObject(void) {
 void OpenGLWindow::start(void){
   /*****************MAINLOOP**********************/
   while(!this->getWindowShouldClose()){
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+
+    // Draw the gui
+    DrawGui();
+
     // Update Input
-    //window->update();
     this->render();
 
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
     glfwWaitEvents();
   }
 }
@@ -258,19 +277,6 @@ void OpenGLWindow::initModels(string fileName) {
         )
     );
 
-
-    // Pyramid* tempPyramid = new Pyramid();
-    // meshes.push_back(
-    //     new Mesh(
-    //         this->shaders[SHADER_CORE_PROGRAM],
-    //         tempPyramid,
-    //         glm::vec3(0.f),
-    //         glm::vec3(0.f),
-    //         glm::vec3(0.f),
-    //         glm::vec3(1.f)
-    //     )
-    // );
-
     if(this->models.size() > 0){
         for (auto*& i: this->models)
             delete i;
@@ -321,6 +327,78 @@ void OpenGLWindow::updateUniforms(void){
 
 }
 
+// ImGui functions
+void OpenGLWindow::initImGui(void){
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+  //ImGui::StyleColorsClassic();
+
+  // Set Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(this->window, true);
+  ImGui_ImplOpenGL3_Init(NULL);
+}
+
+void OpenGLWindow::DrawGui(){
+    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
+
+    // Change these variables to be class variables instead of static
+    // and delete the static declarations below
+    static string objFileName;
+    static string objFilePath;
+
+    static float fov = 60.0f;
+    static float farplane = 500.0f;
+    static float top = 1.0f;
+    static float obliqueScale = 0.0f;
+    static float obliqueAngleRad = pi_f/4.0f;
+    // ...until here
+
+    static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
+
+    ImGui::Begin("3D Studio");
+
+    if (ImGui::CollapsingHeader("OBJ File")) {
+        ImGui::Text("OBJ file: %s", objFileName.c_str());
+        if (ImGui::Button("Open File"))
+            igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
+
+        if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
+            if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
+                objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
+                objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+                cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
+            }
+            // close
+            igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Projection")) {
+        const char* items[] = {"Perspective", "Parallel" };
+        static int proj_current_idx = 0;
+        if (ImGui::Combo("projektion", &proj_current_idx, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)));
+        if (proj_current_idx == 0) {
+            ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+        }
+        if (proj_current_idx == 1) {
+            ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
+            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
+            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
+        }
+    }
+
+    ImGui::End();
+}
+
+
 // Static variables
 void OpenGLWindow::framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const {
   	if(glfwGetCurrentContext() == NULL){
@@ -344,7 +422,38 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
         cout << "Read new .obj file: ";
         cin >> fileName;
 
-        //this->reloadModels(fileName);
+        // vector<Mesh*> meshes;
+        // vector<Vertex> mesh = loadObject(fileName);
+        //
+        // meshes.push_back(
+        //     new Mesh(
+        //         this->shaders[SHADER_CORE_PROGRAM],
+        //         mesh.data(), mesh.size(),
+        //         NULL, 0,
+        //         glm::vec3(1.f, 0.f, 0.f),
+        //         glm::vec3(0.f),
+        //         glm::vec3(0.f),
+        //         glm::vec3(1.f)
+        //     )
+        // );
+        //
+        // for (Model m: this->models){
+        //   delete m;
+        // }
+        // // for (auto*& i: this->models)
+        //     // delete i;
+        //
+        // this->models.push_back(new Model(
+        //     glm::vec3(0.f),
+        //     this->materials[MAT_1],
+        //     this->textures[TEX_WOOD],
+        //     this->textures[TEX_WOOD_SPECULAR],
+        //     meshes
+        // ));
+        //
+        // for (auto*& i: meshes)
+        //     delete i;
+        // this->loadNewObject();
         return;
     }
 
@@ -354,13 +463,13 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
       // MOVE "LEFT"
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
-              j->move(glm::vec3(-0.01f, 0.f ,0.f));
+              j->move(glm::vec3(-0.1f, 0.f ,0.f));
     }
     if((key == GLFW_KEY_L || key == GLFW_KEY_D) && action == GLFW_PRESS){
       // MOVE "RIGHT"
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
-              j->move(glm::vec3(0.01f, 0.f ,0.f));
+              j->move(glm::vec3(0.1f, 0.f ,0.f));
 
     }
     if(key == GLFW_KEY_W && action == GLFW_PRESS){
@@ -370,7 +479,7 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
               j->move(glm::vec3(0.f, 0.f ,0.1f));
     }
     if(key == GLFW_KEY_S && action == GLFW_PRESS){
-      // MOVE "LEFT"
+      // MOVE "DOWN"
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->move(glm::vec3(0.f, 0.f ,-0.1f));

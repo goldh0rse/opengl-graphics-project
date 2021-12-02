@@ -14,6 +14,11 @@
 #include "mymodel.h"
 #include "loader.h"
 
+#include "imgui.h"
+#include "ImGuiFileDialog.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 using namespace std;
 
 // ENUMERATIONS
@@ -22,7 +27,7 @@ enum texture_enum { TEX_CAT = 0, TEX_CAT_SPECULAR, TEX_WOOD, TEX_WOOD_SPECULAR }
 enum material_enum { MAT_1 = 0 };
 enum mesh_enum { MESH_QUAD = 0 };
 
-
+const float pi_f = 3.1415926f;
 
 class OpenGLWindow {
 public:
@@ -37,15 +42,11 @@ public:
   // Accessors
   int getWindowShouldClose(void);
 
-  // Modifiers
-  void setWindowShouldClose(void);
-
   // Functions
   void initialize(void);
   void start(void);
   void update(void);
   void render(void);
-  void loadNewObject(void);
 
   inline GLFWwindow* getWindow(void) { return window; }
   // Callback functions
@@ -108,5 +109,8 @@ private:
   void initUniforms(void);
 
   void updateUniforms(void);
+  void DrawGui();
+  void initImGui();
+  void loadNewObject(void);
 
 };

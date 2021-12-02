@@ -27,7 +27,6 @@ public:
     GLFWwindow* window() const;
     virtual void errorCallback(int error, const char* desc);
     virtual void resizeCallback(GLFWwindow* window, int width, int height);
-    virtual void keyboardInputCallback(GLFWwindow*, )
 
     void start();
     virtual void initialize() = 0;

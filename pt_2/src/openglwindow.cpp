@@ -202,8 +202,6 @@ void OpenGLWindow::resizeCallback(GLFWwindow* window, int width, int height){
   glViewport(0, 0, width, height);
 }
 
-void OpenGLWindow::
-
 
 // GLFW error callback function
 void OpenGLWindow::errorCallback(int error, const char* description){
