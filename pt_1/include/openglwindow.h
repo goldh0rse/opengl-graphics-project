@@ -41,7 +41,6 @@ public:
   void setWindowShouldClose(void);
 
   // Functions
-
   void initialize(void);
   void start(void);
   void update(void);
@@ -50,8 +49,8 @@ public:
 
   inline GLFWwindow* getWindow(void) { return window; }
   // Callback functions
-  void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const;
-  void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods) const;
+  virtual void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const;
+  virtual void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods) const;
 
 private:
   // window
