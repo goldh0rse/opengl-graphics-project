@@ -8,7 +8,7 @@
 #
 SRC = ./src
 INCLUDES = ./include
-TARGET = project
+TARGET =  3DStudio
 IMGUI_DIR = $(SRC)/ImGui
 
 OBJS = 	\

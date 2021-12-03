@@ -1,6 +1,4 @@
-//#include "libs.h"
 #include "callbackmanager.h"
-// #include "openglwindow.h"
 
 OpenGLWindow* CallbackManager::app = nullptr;
 

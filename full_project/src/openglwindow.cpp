@@ -107,11 +107,11 @@ void OpenGLWindow::render(void){
     this->updateUniforms();
 
     for (auto&i : this->models)
-		i->render(this->shaders[SHADER_CORE_PROGRAM]);
+		  i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
     /* END DRAWING SEGMENT */
-    glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
-    glFlush();
+    // glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
+    // glFlush();
 
     glBindVertexArray(0);
     this->shaders[SHADER_CORE_PROGRAM]->unuse();
