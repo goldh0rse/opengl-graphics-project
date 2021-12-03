@@ -45,7 +45,7 @@ public:
   // Functions
   void initialize(void);
   void start(void);
-  void update(void);
+  // void update(void);
   void render(void);
 
   inline GLFWwindow* getWindow(void) { return window; }
@@ -79,6 +79,17 @@ private:
 	float nearPlane;
 	float farPlane;
 
+  string objFileName;
+  string objFilePath;
+  string objFullPath;
+  
+  /*
+  static float fov = 60.0f;
+  static float farplane = 500.0f;
+  static float top = 1.0f;
+  static float obliqueScale = 0.0f;
+  static float obliqueAngleRad = pi_f/4.0f;
+  */
   // Shaders
   vector<Shader*> shaders;
 
@@ -111,6 +122,6 @@ private:
   void updateUniforms(void);
   void DrawGui();
   void initImGui();
-  void loadNewObject(void);
+  // void loadNewObject(void);
 
 };

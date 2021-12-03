@@ -84,20 +84,20 @@ int OpenGLWindow::getWindowShouldClose(void){
 // Modifiers
 
 // Functions
-void OpenGLWindow::update(void){
-
-    // Update input
-    glfwPollEvents(); // Poll input events
-
-    // Poll new objectfile
-    if(glfwGetKey(window, GLFW_KEY_O) == GLFW_TRUE){
-        this->loadNewObject();
-    }
-
-    // for (auto&i : this->models)
-    //     for (auto&j : i->getMeshes())
-    //         this->updateInput(this->window, j);
-}
+// void OpenGLWindow::update(void){
+//
+//     // Update input
+//     glfwPollEvents(); // Poll input events
+//
+//     // Poll new objectfile
+//     if(glfwGetKey(window, GLFW_KEY_O) == GLFW_TRUE){
+//         this->loadNewObject();
+//     }
+//
+//     // for (auto&i : this->models)
+//     //     for (auto&j : i->getMeshes())
+//     //         this->updateInput(this->window, j);
+// }
 
 void OpenGLWindow::render(void){
     // Clear
@@ -109,22 +109,18 @@ void OpenGLWindow::render(void){
     for (auto&i : this->models)
 		  i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     /* END DRAWING SEGMENT */
-    // glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
-    // glFlush();
+    glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
+    glFlush();
 
     glBindVertexArray(0);
     this->shaders[SHADER_CORE_PROGRAM]->unuse();
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void OpenGLWindow::loadNewObject(void) {
-    string fileName="";
-    cout << "Read new .obj file: ";
-    cin >> fileName;
-
-    this->initModels(fileName);
 }
 
 void OpenGLWindow::start(void){
@@ -135,18 +131,13 @@ void OpenGLWindow::start(void){
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-
     // Draw the gui
     DrawGui();
 
     // Update Input
     this->render();
 
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
+    // glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
     glfwWaitEvents();
   }
 }
@@ -349,8 +340,8 @@ void OpenGLWindow::DrawGui(){
 
     // Change these variables to be class variables instead of static
     // and delete the static declarations below
-    static string objFileName;
-    static string objFilePath;
+    // static string objFileName;
+    // static string objFilePath;
 
     static float fov = 60.0f;
     static float farplane = 500.0f;
@@ -364,15 +355,22 @@ void OpenGLWindow::DrawGui(){
     ImGui::Begin("3D Studio");
 
     if (ImGui::CollapsingHeader("OBJ File")) {
-        ImGui::Text("OBJ file: %s", objFileName.c_str());
+        ImGui::Text("OBJ file: %s", this->objFileName.c_str());
         if (ImGui::Button("Open File"))
             igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
 
         if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
             if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
-                objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
-                objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-                cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
+                this->objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
+                this->objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                // THIS WORKS
+                this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+
+                // cout << "Full FilePathName: " << this->objFullPath << endl;
+                cout << "OBJ file: " << this->objFileName << endl << "Path: " << this->objFilePath << endl;
+
+                this->initModels(this->objFullPath);
             }
             // close
             igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
@@ -380,6 +378,9 @@ void OpenGLWindow::DrawGui(){
     }
 
     if (ImGui::CollapsingHeader("Projection")) {
+        // THIS IS WHERE I NEED TO CHANGE THE PROJECTION
+
+
         const char* items[] = {"Perspective", "Parallel" };
         static int proj_current_idx = 0;
         if (ImGui::Combo("projektion", &proj_current_idx, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)));
@@ -417,45 +418,45 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 
 
     // Load new model
-    if(key == GLFW_KEY_O && action == GLFW_PRESS){
-        string fileName="";
-        cout << "Read new .obj file: ";
-        cin >> fileName;
-
-        // vector<Mesh*> meshes;
-        // vector<Vertex> mesh = loadObject(fileName);
-        //
-        // meshes.push_back(
-        //     new Mesh(
-        //         this->shaders[SHADER_CORE_PROGRAM],
-        //         mesh.data(), mesh.size(),
-        //         NULL, 0,
-        //         glm::vec3(1.f, 0.f, 0.f),
-        //         glm::vec3(0.f),
-        //         glm::vec3(0.f),
-        //         glm::vec3(1.f)
-        //     )
-        // );
-        //
-        // for (Model m: this->models){
-        //   delete m;
-        // }
-        // // for (auto*& i: this->models)
-        //     // delete i;
-        //
-        // this->models.push_back(new Model(
-        //     glm::vec3(0.f),
-        //     this->materials[MAT_1],
-        //     this->textures[TEX_WOOD],
-        //     this->textures[TEX_WOOD_SPECULAR],
-        //     meshes
-        // ));
-        //
-        // for (auto*& i: meshes)
-        //     delete i;
-        // this->loadNewObject();
-        return;
-    }
+    // if(key == GLFW_KEY_O && action == GLFW_PRESS){
+    //     string fileName="";
+    //     cout << "Read new .obj file: ";
+    //     cin >> fileName;
+    //
+    //     // vector<Mesh*> meshes;
+    //     // vector<Vertex> mesh = loadObject(fileName);
+    //     //
+    //     // meshes.push_back(
+    //     //     new Mesh(
+    //     //         this->shaders[SHADER_CORE_PROGRAM],
+    //     //         mesh.data(), mesh.size(),
+    //     //         NULL, 0,
+    //     //         glm::vec3(1.f, 0.f, 0.f),
+    //     //         glm::vec3(0.f),
+    //     //         glm::vec3(0.f),
+    //     //         glm::vec3(1.f)
+    //     //     )
+    //     // );
+    //     //
+    //     // for (Model m: this->models){
+    //     //   delete m;
+    //     // }
+    //     // // for (auto*& i: this->models)
+    //     //     // delete i;
+    //     //
+    //     // this->models.push_back(new Model(
+    //     //     glm::vec3(0.f),
+    //     //     this->materials[MAT_1],
+    //     //     this->textures[TEX_WOOD],
+    //     //     this->textures[TEX_WOOD_SPECULAR],
+    //     //     meshes
+    //     // ));
+    //     //
+    //     // for (auto*& i: meshes)
+    //     //     delete i;
+    //     // this->loadNewObject();
+    //     return;
+    // }
 
 
     // TRANSLATE

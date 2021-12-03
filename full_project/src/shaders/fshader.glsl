@@ -56,7 +56,7 @@ void main() {
 
   // Final Light
   fs_color =
-    texture(material.diffuseTex, vs_texcoord) *
+    //texture(material.diffuseTex, vs_texcoord) *
     vec4(vs_color, 1.f) *
     (
       // Lights
