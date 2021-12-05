@@ -23,7 +23,7 @@ uniform vec3 cameraPos;
 
 // Functions
 vec3 calcAmbient(Material material){
-  return material.ambient * vec3(0.1f, 0.1f, 0.1f);
+  return material.ambient * vec3(0.2f, 0.2f, 0.2f);
 }
 
 vec3 calcDiffuse(Material material, vec3 position, vec3 normal, vec3 lightPos){

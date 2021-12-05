@@ -201,7 +201,7 @@ void OpenGLWindow::initMatrices(void){
     this->ViewMatrix = glm::mat4(1.f);
     this->ViewMatrix = glm::lookAt(
         this->camPosition,
-        this->camPosition + camFront,
+        this->camPosition + this->camFront,
         this->worldUp
     );
 
