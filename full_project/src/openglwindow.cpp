@@ -25,9 +25,14 @@ OpenGLWindow::OpenGLWindow(
     this->camPosition = glm::vec3(0.f, 0.f, 2.f);
     this->worldUp = glm::vec3(0.f, 1.f, 0.f);
     this->camFront = glm::vec3(0.f, 0.f, -1.f);
+
+    this->projectType = true;
     this->fov = 90.f;
     this->nearPlane = 0.1f; // Due to where we want clipping to be
     this->farPlane = 1000.f; // Test on itchy, if slow dump to 100.f
+    this->top = 1.0f;
+    this->obliqueScale = 0.0f;
+    this->obliqueAngleRad = pi_f/4.0f;
 
     this->initGLFW();
     this->initWindow(title, resizable);
@@ -82,23 +87,6 @@ int OpenGLWindow::getWindowShouldClose(void){
 }
 
 // Modifiers
-
-// Functions
-// void OpenGLWindow::update(void){
-//
-//     // Update input
-//     glfwPollEvents(); // Poll input events
-//
-//     // Poll new objectfile
-//     if(glfwGetKey(window, GLFW_KEY_O) == GLFW_TRUE){
-//         this->loadNewObject();
-//     }
-//
-//     // for (auto&i : this->models)
-//     //     for (auto&j : i->getMeshes())
-//     //         this->updateInput(this->window, j);
-// }
-
 void OpenGLWindow::render(void){
     // Clear
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -301,19 +289,40 @@ void OpenGLWindow::initUniforms(void){
 }
 
 void OpenGLWindow::updateUniforms(void){
-    // Update Uniforms
-    this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
-    this->shaders[SHADER_CORE_PROGRAM]->set1i(1, "texture1");
+  // Update Uniforms
+  this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
+  this->shaders[SHADER_CORE_PROGRAM]->set1i(1, "texture1");
 
-    // Update framebuffersize & ProjectionMatrix
-    glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
+  // Update framebuffersize & ProjectionMatrix
+  glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
-    this->ProjectionMatrix = glm::mat4(1.f);
+  this->ProjectionMatrix = glm::mat4(1.f);
+  if (this->projectType){
+    // Perspective
     this->ProjectionMatrix = glm::perspective(
         	glm::radians(this->fov),
         	static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
         	this->nearPlane, this->farPlane
-	);
+  	);
+  } else {
+    // Parallel
+    this->bottom = -this->top;
+    this->right = this->top * (static_cast<float>(this->framebufferWidth) / this->framebufferHeight);
+    this->left = -this->right;
+
+    // ST
+    this->ProjectionMatrix = glm::ortho(
+      this->left, this->right,
+      this->bottom, this->top,
+      this->nearPlane, this->farPlane
+    );
+
+    // H(alpha)
+    this->ProjectionMatrix[0][2] = this->obliqueScale * glm::cos(this->obliqueAngleRad);
+    this->ProjectionMatrix[1][2] = this->obliqueScale * glm::sin(this->obliqueAngleRad);
+  }
+
+
 	this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
 }
@@ -338,18 +347,6 @@ void OpenGLWindow::initImGui(void){
 void OpenGLWindow::DrawGui(){
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
-    // Change these variables to be class variables instead of static
-    // and delete the static declarations below
-    // static string objFileName;
-    // static string objFilePath;
-
-    static float fov = 60.0f;
-    static float farplane = 500.0f;
-    static float top = 1.0f;
-    static float obliqueScale = 0.0f;
-    static float obliqueAngleRad = pi_f/4.0f;
-    // ...until here
-
     static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
 
     ImGui::Begin("3D Studio");
@@ -364,7 +361,6 @@ void OpenGLWindow::DrawGui(){
                 this->objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
                 this->objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
 
-                // THIS WORKS
                 this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
 
                 // cout << "Full FilePathName: " << this->objFullPath << endl;
@@ -380,19 +376,20 @@ void OpenGLWindow::DrawGui(){
     if (ImGui::CollapsingHeader("Projection")) {
         // THIS IS WHERE I NEED TO CHANGE THE PROJECTION
 
-
         const char* items[] = {"Perspective", "Parallel" };
         static int proj_current_idx = 0;
         if (ImGui::Combo("projektion", &proj_current_idx, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)));
         if (proj_current_idx == 0) {
-            ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
-            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Field of view",&this->fov, 20.0f, 160.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Far",&this->farPlane, 1.0f, 1000.0f, "%1.0f", flags);
+            this->projectType = true;
         }
         if (proj_current_idx == 1) {
-            ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
-            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
-            ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
-            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
+            ImGui::SliderFloat("Top",&this->top, 1.0f, 100.0f, "%.1f", flags);
+            ImGui::SliderFloat("Far",&this->farPlane, 1.0f, 1000.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Oblique scale",&this->obliqueScale, 0.0f, 1.0f, "%.1f", flags);
+            ImGui::SliderAngle("Oblique angle",&this->obliqueAngleRad, 15, 75, "%1.0f", flags);
+            this->projectType = false;
         }
     }
 
@@ -416,6 +413,14 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
         return;
     }
 
+    /*
+    Up (E) Moves p0 and pref relative the camera's positive y-axis.
+    Down (Q) Moves p0 and pref relative the camera's negative y-axis.
+    Right (D) Moves p0 and pref relative the camera's positive x-axis.
+    Left (A) Moves p0 and pref relative the camera's negative x-axis.
+    Forward (W) Moves p0 and pref relative the camera's negative(!) z-axis.
+    Backwards (S) Moves p0 and pref relative the camera's positive z-axis.
+    */
 
     // Load new model
     // if(key == GLFW_KEY_O && action == GLFW_PRESS){
