@@ -15,7 +15,8 @@ OpenGLWindow::OpenGLWindow(
     WINDOW_WIDTH(WINDOW_WIDTH),
     WINDOW_HEIGHT(WINDOW_HEIGHT),
     GL_VERSION_MAJOR(GL_VERSION_MAJOR),
-    GL_VERSION_MINOR(GL_VERSION_MINOR)
+    GL_VERSION_MINOR(GL_VERSION_MINOR),
+    camera(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, -1.f))
 {
 
     this->window = nullptr;
@@ -194,6 +195,8 @@ void OpenGLWindow::initOpenGLOptions(void){
 }
 
 void OpenGLWindow::initMatrices(void){
+    // this->camera = new Camera(this->camPosition, this->worldUp, this->camFront);
+
     // ViewMatrix
     this->ViewMatrix = glm::mat4(1.f);
     this->ViewMatrix = glm::lookAt(
@@ -291,6 +294,8 @@ void OpenGLWindow::updateUniforms(void){
   // Update ViewMatrix
   this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
   this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
+  // this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+  // this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getPosition(), "cameraPos");
 
   // Update Uniforms
   this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
@@ -346,7 +351,7 @@ void OpenGLWindow::initImGui(void){
   ImGui_ImplOpenGL3_Init(NULL);
 }
 
-void OpenGLWindow::DrawGui(){
+void OpenGLWindow::DrawGui(void){
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
     static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
@@ -415,7 +420,6 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
         return;
     }
 
-
     // CAMERA
     if (key == GLFW_KEY_E && action == GLFW_PRESS){
       // Up (E) Moves p0 and pref relative the camera's positive y-axis.
@@ -445,14 +449,16 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 
     }
 
+    // Activate Cursor
     if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS){
+      // glfwSetCursorPos(window, this->framebufferHeight / 2, this->framebufferWidth / 2);
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      glfwSetCursorPos(window, 0, 0);
       // Hide mouse, activate mouse input
     } else if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE){
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
       // Show mouse, disable mouse input
     }
-
 
     // TRANSLATE OBJECT
     if(key == GLFW_KEY_J && action == GLFW_PRESS){
@@ -513,6 +519,8 @@ void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos)
   if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
     // Update Camera
     cout << "Mouse callback: " << xpos << ", " << ypos << endl;
+    // Compute the
+
   } else {
     // Do nothing????????
   }

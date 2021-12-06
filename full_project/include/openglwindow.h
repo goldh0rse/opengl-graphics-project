@@ -72,7 +72,7 @@ private:
   const int GL_VERSION_MINOR;
 
   // MATRICES
-  // Camera camera;
+  Camera camera;
   glm::mat4 ViewMatrix;
 	glm::vec3 camPosition;
 	glm::vec3 worldUp;
@@ -125,10 +125,8 @@ private:
   void initUniforms(void);
 
   void updateUniforms(void);
-  void DrawGui();
-  void initImGui();
-  // void loadNewObject(void);
-
+  void DrawGui(void);
+  void initImGui(void);
 };
 
 #endif
