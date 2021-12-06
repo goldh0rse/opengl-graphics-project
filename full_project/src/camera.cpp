@@ -31,7 +31,7 @@ void Camera::updateCamera(void){
 	this->up = glm::normalize(glm::cross(this->right, this->facing));
 }
 
-const glm::mat4 Camera::getViewMatrix(void){
+glm::mat4 Camera::getViewMatrix(void){
 	// this->updateCamera();
 
 	this->ViewMatrix = glm::lookAt(this->position, this->position + this->front, this->up);

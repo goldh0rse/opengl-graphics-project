@@ -18,10 +18,11 @@ public:
 
   // Functions
   void moveCamera(glm::vec3 position, glm::vec3 facing);
-  const glm::mat4 getViewMatrix(void);
+  glm::mat4 getViewMatrix(void);
   glm::vec3 getPosition(void) const;
   void move(const float& dt, const int direction);
   void updateMouseInput(const float& dt, const double& offsetX, const double& offsetY);
+  void updateInput(const float& dt, const int direction, const double& offsetX, const double& offsetY);
 
 private:
   // Attributes
@@ -42,8 +43,7 @@ private:
 
   // Functions
   void updateCamera(void);
-  void updateInput(const float& dt, const int direction, const double& offsetX, const double& offsetY);
-
+  
 };
 
 #endif
