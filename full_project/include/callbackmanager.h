@@ -12,6 +12,10 @@ class CallbackManager {
     app->framebuffer_resize_callback(window, width, height);
   }
 
+  static void cursorCallback(GLFWwindow* window, double xpos, double ypos){
+    app->cursor_callback(window, xpos, ypos);
+  }
+
 
 public:
   static void initCallbacks(OpenGLWindow* window){
@@ -19,6 +23,7 @@ public:
 
     glfwSetKeyCallback(app->getWindow(), keyboardCallback);
     glfwSetFramebufferSizeCallback(app->getWindow(), resizeCallback);
+    glfwSetCursorPosCallback(app->getWindow(), cursorCallback);
 
   }
 };

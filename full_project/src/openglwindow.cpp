@@ -39,7 +39,6 @@ OpenGLWindow::OpenGLWindow(
     this->initGLEW();
     this->initImGui();
     this->initOpenGLOptions();
-
 }
 
 OpenGLWindow::~OpenGLWindow(void){
@@ -157,9 +156,7 @@ void OpenGLWindow::initWindow(const char* title, bool resizable){
         cerr << "Could not open window or initialize OpenGL context." << endl;
         exit(EXIT_FAILURE);
     }
-
-    // glfwSetKeyCallback(this->window, OpenGLWindow::keyboard_input_callback);
-    // glfwSetFramebufferSizeCallback(this->window, OpenGLWindow::framebuffer_resize_callback);
+    // glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
     glfwMakeContextCurrent(this->window); // NOW GLEW CAN INITIALIZE
@@ -281,6 +278,8 @@ void OpenGLWindow::initLights(void){
 
 void OpenGLWindow::initUniforms(void){
     // Send Matricies to shader
+    // glm::mat4 ViewMatrix = this->camera.getViewMatrix();
+    // glm::vec3 cameraPos = this->camera.getPosition();
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
@@ -289,6 +288,10 @@ void OpenGLWindow::initUniforms(void){
 }
 
 void OpenGLWindow::updateUniforms(void){
+  // Update ViewMatrix
+  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
+  this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
+
   // Update Uniforms
   this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
   this->shaders[SHADER_CORE_PROGRAM]->set1i(1, "texture1");
@@ -296,6 +299,7 @@ void OpenGLWindow::updateUniforms(void){
   // Update framebuffersize & ProjectionMatrix
   glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
+  // Projection Matrix
   this->ProjectionMatrix = glm::mat4(1.f);
   if (this->projectType){
     // Perspective
@@ -322,9 +326,7 @@ void OpenGLWindow::updateUniforms(void){
     this->ProjectionMatrix[1][2] = this->obliqueScale * glm::sin(this->obliqueAngleRad);
   }
 
-
-	this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
-
+  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 }
 
 // ImGui functions
@@ -413,105 +415,79 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
         return;
     }
 
-    /*
-    Up (E) Moves p0 and pref relative the camera's positive y-axis.
-    Down (Q) Moves p0 and pref relative the camera's negative y-axis.
-    Right (D) Moves p0 and pref relative the camera's positive x-axis.
-    Left (A) Moves p0 and pref relative the camera's negative x-axis.
-    Forward (W) Moves p0 and pref relative the camera's negative(!) z-axis.
-    Backwards (S) Moves p0 and pref relative the camera's positive z-axis.
-    */
 
-    // Load new model
-    // if(key == GLFW_KEY_O && action == GLFW_PRESS){
-    //     string fileName="";
-    //     cout << "Read new .obj file: ";
-    //     cin >> fileName;
-    //
-    //     // vector<Mesh*> meshes;
-    //     // vector<Vertex> mesh = loadObject(fileName);
-    //     //
-    //     // meshes.push_back(
-    //     //     new Mesh(
-    //     //         this->shaders[SHADER_CORE_PROGRAM],
-    //     //         mesh.data(), mesh.size(),
-    //     //         NULL, 0,
-    //     //         glm::vec3(1.f, 0.f, 0.f),
-    //     //         glm::vec3(0.f),
-    //     //         glm::vec3(0.f),
-    //     //         glm::vec3(1.f)
-    //     //     )
-    //     // );
-    //     //
-    //     // for (Model m: this->models){
-    //     //   delete m;
-    //     // }
-    //     // // for (auto*& i: this->models)
-    //     //     // delete i;
-    //     //
-    //     // this->models.push_back(new Model(
-    //     //     glm::vec3(0.f),
-    //     //     this->materials[MAT_1],
-    //     //     this->textures[TEX_WOOD],
-    //     //     this->textures[TEX_WOOD_SPECULAR],
-    //     //     meshes
-    //     // ));
-    //     //
-    //     // for (auto*& i: meshes)
-    //     //     delete i;
-    //     // this->loadNewObject();
-    //     return;
-    // }
+    // CAMERA
+    if (key == GLFW_KEY_E && action == GLFW_PRESS){
+      // Up (E) Moves p0 and pref relative the camera's positive y-axis.
+    }
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS){
+      // Down (Q) Moves p0 and pref relative the camera's negative y-axis.
+
+    }
+    if (key == GLFW_KEY_W && action == GLFW_PRESS){
+      // MOVE CAMERA "CLOSER"
+      // Forward (W) Moves p0 and pref relative the camera's negative(!) z-axis.
+
+    }
+    if (key == GLFW_KEY_S && action == GLFW_PRESS){
+      // MOVE CAMERA "AWAY"
+      // Backwards (S) Moves p0 and pref relative the camera's positive z-axis.
+
+    }
+    if (key == GLFW_KEY_D && action == GLFW_PRESS){
+      // MOVE CAMERA "RIGHT"
+      // Right (D) Moves p0 and pref relative the camera's positive x-axis.
+
+    }
+    if (key == GLFW_KEY_A && action == GLFW_PRESS){
+      // MOVE CAMERA "LEFT"
+      // Left (A) Moves p0 and pref relative the camera's negative x-axis.
+
+    }
+
+    if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS){
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      // Hide mouse, activate mouse input
+    } else if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE){
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      // Show mouse, disable mouse input
+    }
 
 
-    // TRANSLATE
-    if((key == GLFW_KEY_J || key == GLFW_KEY_A) && action == GLFW_PRESS){
-      // MOVE "LEFT"
+    // TRANSLATE OBJECT
+    if(key == GLFW_KEY_J && action == GLFW_PRESS){
+      // TRANSLATE OBJECT "LEFT"
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->move(glm::vec3(-0.1f, 0.f ,0.f));
     }
-    if((key == GLFW_KEY_L || key == GLFW_KEY_D) && action == GLFW_PRESS){
-      // MOVE "RIGHT"
+    if(key == GLFW_KEY_L && action == GLFW_PRESS){
+      //  TRANSLATE OBJECT "RIGHT"
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->move(glm::vec3(0.1f, 0.f ,0.f));
-
     }
-    if(key == GLFW_KEY_W && action == GLFW_PRESS){
-      // MOVE "CLOSER"
-      for (auto&i : this->models)
-          for (auto&j : i->getMeshes())
-              j->move(glm::vec3(0.f, 0.f ,0.1f));
-    }
-    if(key == GLFW_KEY_S && action == GLFW_PRESS){
-      // MOVE "DOWN"
-      for (auto&i : this->models)
-          for (auto&j : i->getMeshes())
-              j->move(glm::vec3(0.f, 0.f ,-0.1f));
-    }
-
 
     // ROTATE
-    if(key == GLFW_KEY_UP && action == GLFW_PRESS){
+    if(key == GLFW_KEY_UP && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // NEGATIVE ROTATION AROUND X AXIS
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->rotate(glm::vec3(-1.f, 0.f ,0.f));
     }
-    if(key == GLFW_KEY_DOWN && action == GLFW_PRESS){
+    if(key == GLFW_KEY_DOWN && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // POSITIVE ROTATION AROUND X AXIS
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->rotate(glm::vec3(1.f, 0.f ,0.f));
     }
-    if(key == GLFW_KEY_LEFT && action == GLFW_PRESS){
+    if(key == GLFW_KEY_LEFT && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // NEGATIVE ROTATION AROUND Y AXIS
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->rotate(glm::vec3(0.f, -1.f ,0.f));
     }
-    if(key == GLFW_KEY_RIGHT && action == GLFW_PRESS){
+    if(key == GLFW_KEY_RIGHT && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // NEGATIVE ROTATION AROUND X AXIS
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
@@ -526,9 +502,18 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
               j->scaleMesh(glm::vec3(0.f, 0.01f ,0.f));
     }
     if(key == GLFW_KEY_K && action == GLFW_PRESS){
-      // MOVE "DOWN Y"
+      // SCALE "DOWN Y"
       for (auto&i : this->models)
           for (auto&j : i->getMeshes())
               j->scaleMesh(glm::vec3(0.f, -0.01f ,0.f));
     }
+}
+
+void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos) const {
+  if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
+    // Update Camera
+    cout << "Mouse callback: " << xpos << ", " << ypos << endl;
+  } else {
+    // Do nothing????????
+  }
 }

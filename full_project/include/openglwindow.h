@@ -1,3 +1,6 @@
+#ifndef OPENGLWINDOW_H_
+#define OPENGLWINDOW_H_
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -13,6 +16,7 @@
 #include "mesh.h"
 #include "mymodel.h"
 #include "loader.h"
+#include "camera.h"
 
 #include "imgui.h"
 #include "ImGuiFileDialog.h"
@@ -51,34 +55,35 @@ public:
   // Callback functions
   virtual void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const;
   virtual void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods) const;
+  virtual void cursor_callback(GLFWwindow* window, double xpos, double ypos) const;
 
 private:
-  // window
+	// window
   GLFWwindow* window;
 
-  // Attributes
+  // window attributes
   const int WINDOW_WIDTH;
 	const int WINDOW_HEIGHT;
 	int framebufferWidth;
 	int framebufferHeight;
 
-	//OpenGL Context
+  //OpenGL Context
 	const int GL_VERSION_MAJOR;
-	const int GL_VERSION_MINOR;
-
+  const int GL_VERSION_MINOR;
 
   // MATRICES
+  // Camera camera;
   glm::mat4 ViewMatrix;
 	glm::vec3 camPosition;
 	glm::vec3 worldUp;
 	glm::vec3 camFront;
+  float dt;
 
-  bool projectType;
 	glm::mat4 ProjectionMatrix;
+  bool projectType;
 	float fov;
 	float nearPlane;
 	float farPlane;
-
   float top;
   float bottom;
   float left;
@@ -86,6 +91,7 @@ private:
   float obliqueScale;
   float obliqueAngleRad;
 
+  // Object file-stuff
   string objFileName;
   string objFilePath;
   string objFullPath;
@@ -104,7 +110,6 @@ private:
 
   // Lights
   vector<glm::vec3*> lights;
-
 
   // Private functions
   void initGLFW(void);
@@ -125,3 +130,5 @@ private:
   // void loadNewObject(void);
 
 };
+
+#endif
