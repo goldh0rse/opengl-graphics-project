@@ -16,24 +16,32 @@ OpenGLWindow::OpenGLWindow(
     WINDOW_HEIGHT(WINDOW_HEIGHT),
     GL_VERSION_MAJOR(GL_VERSION_MAJOR),
     GL_VERSION_MINOR(GL_VERSION_MINOR),
-    camera(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, -1.f))
+    // camera(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, -1.f)),
+    startPos(glm::vec3(0.f, 0.f, 2.f)),
+    startWorldUp(glm::vec3(0.f, 1.f, 0.f)),
+    startFacing(glm::vec3(0.f, 0.f, -1.f))
 {
 
     this->window = nullptr;
     this->framebufferWidth = this->WINDOW_WIDTH;
     this->framebufferHeight = this->WINDOW_HEIGHT;
 
-    this->camPosition = glm::vec3(0.f, 0.f, 2.f);
-    this->worldUp = glm::vec3(0.f, 1.f, 0.f);
-    this->camFront = glm::vec3(0.f, 0.f, -1.f);
-    this->camRight = glm::vec3(0.f);
-    this->camUp = this->worldUp;
+    // this->startPos = glm::vec3(0.f, 0.f, 2.f);
+    // this->startWorldUp = glm::vec3(0.f, 1.f, 0.f);
+    // this->startFacing = glm::vec3(0.f, 0.f, -1.f);
 
+    this->camPosition = this->startPos;
+    this->worldUp = this->startWorldUp;
+    this->camFront = this->startFacing;
+    this->camRight = glm::vec3(0.f);
+    this->camRight = glm::normalize(glm::cross(this->camFront, this->worldUp));
+    this->camUp = glm::normalize(glm::cross(this->camRight, this->camFront));
 
     this->pitch = 0.f;
     this->yaw = -90.f;
     this->roll = 0.f;
-    this->sensitivity = 0.01f;
+    this->sensitivity = 0.1f;
+    this->movementSpeed = 0.05f;
 
     this->projectType = true;
     this->fov = 90.f;
@@ -42,6 +50,7 @@ OpenGLWindow::OpenGLWindow(
     this->top = 1.0f;
     this->obliqueScale = 0.0f;
     this->obliqueAngleRad = pi_f/4.0f;
+
     this->showGui = true;
 
     this->initGLFW();
@@ -416,8 +425,34 @@ void OpenGLWindow::DrawGui(void){
     ImGui::End();
 }
 
+void OpenGLWindow::moveCamera(const int direction){
+	//Update position vector
+	switch (direction){
+	case FORWARD:
+		this->camPosition += this->camFront * this->movementSpeed;// * dt;
+		break;
+	case BACKWARD:
+		this->camPosition -= this->camFront * this->movementSpeed;
+		break;
+	case LEFT:
+		this->camPosition -= this->camRight * this->movementSpeed;
+		break;
+	case RIGHT:
+		this->camPosition += this->camRight * this->movementSpeed;
+		break;
+  case UP:
+    this->camPosition += this->camUp * this->movementSpeed;
+    break;
+  case DOWN:
+    this->camPosition -= this->camUp * this->movementSpeed;
+    break;
+	default:
+		break;
+	}
 
-// Static variables
+}
+
+// Callbacks
 void OpenGLWindow::framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const {
   	if(glfwGetCurrentContext() == NULL){
 		return;
@@ -436,30 +471,27 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
     // CAMERA
     if (key == GLFW_KEY_E && action == GLFW_PRESS){
       // Up (E) Moves p0 and pref relative the camera's positive y-axis.
+      this->moveCamera(UP);
     }
     if (key == GLFW_KEY_Q && action == GLFW_PRESS){
       // Down (Q) Moves p0 and pref relative the camera's negative y-axis.
-
+      this->moveCamera(DOWN);
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS){
-      // MOVE CAMERA "CLOSER"
+    if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Forward (W) Moves p0 and pref relative the camera's negative(!) z-axis.
-
+      this->moveCamera(FORWARD);
     }
-    if (key == GLFW_KEY_S && action == GLFW_PRESS){
-      // MOVE CAMERA "AWAY"
+    if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Backwards (S) Moves p0 and pref relative the camera's positive z-axis.
-
+      this->moveCamera(BACKWARD);
     }
-    if (key == GLFW_KEY_D && action == GLFW_PRESS){
-      // MOVE CAMERA "RIGHT"
+    if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Right (D) Moves p0 and pref relative the camera's positive x-axis.
-
+      this->moveCamera(RIGHT);
     }
-    if (key == GLFW_KEY_A && action == GLFW_PRESS){
-      // MOVE CAMERA "LEFT"
+    if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Left (A) Moves p0 and pref relative the camera's negative x-axis.
-
+      this->moveCamera(LEFT);
     }
 
     // Activate Cursor
@@ -533,13 +565,10 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos) {
   if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
     // Update Camera
-    cout << "Cursor Screen Coordinates: (" << xpos << ", " << ypos << ")"<< endl;
-    // Save the mouse screen coordinate
-    this->cursorScreenX = xpos;
-    this->cursorScreenY = ypos;
-    this->offsetX = this->cursorScreenX - (this->framebufferWidth / 2);
-    this->offsetY = this->cursorScreenY -  (this->framebufferHeight / 2);
-    cout << "Cursor Offset: (" << this->offsetX << ", " << this->offsetY << ")" << endl;
+    // cout << "Cursor Screen Coordinates: (" << xpos << ", " << ypos << ")"<< endl;
+    this->offsetX = xpos - (this->framebufferWidth / 2);
+    this->offsetY = (this->framebufferHeight / 2) - ypos;
+    // cout << "Cursor Offset: (" << this->offsetX << ", " << this->offsetY << ")" << endl;
 
     this->pitch += static_cast<GLfloat>(this->offsetY) * this->sensitivity;
   	this->yaw += static_cast<GLfloat>(this->offsetX) * this->sensitivity;
@@ -565,7 +594,5 @@ void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 
     glfwSetCursorPos(window, this->framebufferWidth/2, this->framebufferHeight / 2);
 
-  } else {
-    // Do nothing????????
   }
 }

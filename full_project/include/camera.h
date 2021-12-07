@@ -8,7 +8,7 @@
 
 using namespace std;
 
-enum direction {FORWARD = 0, BACKWARD, LEFT, RIGHT};
+enum direction {FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN};
 
 class Camera {
 public:
@@ -43,7 +43,7 @@ private:
 
   // Functions
   void updateCamera(void);
-  
+
 };
 
 #endif
