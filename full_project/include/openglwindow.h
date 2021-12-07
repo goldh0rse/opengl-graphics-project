@@ -54,8 +54,8 @@ public:
   inline GLFWwindow* getWindow(void) { return window; }
   // Callback functions
   virtual void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const;
-  virtual void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods) const;
-  virtual void cursor_callback(GLFWwindow* window, double xpos, double ypos) const;
+  virtual void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+  virtual void cursor_callback(GLFWwindow* window, double xpos, double ypos);
 
 private:
 	// window
@@ -76,8 +76,15 @@ private:
   glm::mat4 ViewMatrix;
 	glm::vec3 camPosition;
 	glm::vec3 worldUp;
+  glm::vec3 camUp;
 	glm::vec3 camFront;
+  glm::vec3 camRight;
   float dt;
+  GLfloat pitch;
+  GLfloat yaw;
+  GLfloat roll;
+  GLfloat sensitivity;
+
 
 	glm::mat4 ProjectionMatrix;
   bool projectType;
@@ -90,6 +97,13 @@ private:
   float right;
   float obliqueScale;
   float obliqueAngleRad;
+
+  // Cursors stuff
+  double cursorScreenX;
+  double cursorScreenY;
+  double offsetX;
+  double offsetY;
+  bool showGui;
 
   // Object file-stuff
   string objFileName;

@@ -26,6 +26,14 @@ OpenGLWindow::OpenGLWindow(
     this->camPosition = glm::vec3(0.f, 0.f, 2.f);
     this->worldUp = glm::vec3(0.f, 1.f, 0.f);
     this->camFront = glm::vec3(0.f, 0.f, -1.f);
+    this->camRight = glm::vec3(0.f);
+    this->camUp = this->worldUp;
+
+
+    this->pitch = 0.f;
+    this->yaw = -90.f;
+    this->roll = 0.f;
+    this->sensitivity = 0.01f;
 
     this->projectType = true;
     this->fov = 90.f;
@@ -34,6 +42,7 @@ OpenGLWindow::OpenGLWindow(
     this->top = 1.0f;
     this->obliqueScale = 0.0f;
     this->obliqueAngleRad = pi_f/4.0f;
+    this->showGui = true;
 
     this->initGLFW();
     this->initWindow(title, resizable);
@@ -120,7 +129,9 @@ void OpenGLWindow::start(void){
     ImGui::NewFrame();
 
     // Draw the gui
-    DrawGui();
+    if(this->showGui){
+      DrawGui();
+    }
 
     // Update Input
     this->render();
@@ -292,6 +303,8 @@ void OpenGLWindow::initUniforms(void){
 
 void OpenGLWindow::updateUniforms(void){
   // Update ViewMatrix
+  this->ViewMatrix = glm::lookAt(this->camPosition, this->camPosition + this->camFront, this->camUp);
+
   this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
   this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
   // this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
@@ -413,7 +426,7 @@ void OpenGLWindow::framebuffer_resize_callback(GLFWwindow* window, int fbW, int 
 	glViewport(0, 0, fbW, fbH);
 }
 
-void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods) const {
+void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     // QUIT
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
         glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -451,12 +464,14 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 
     // Activate Cursor
     if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS){
-      // glfwSetCursorPos(window, this->framebufferHeight / 2, this->framebufferWidth / 2);
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-      glfwSetCursorPos(window, 0, 0);
+      this->showGui = false;
+      // glfwSetCursorPos(window, 0, 0);
+      glfwSetCursorPos(window, this->framebufferWidth/2, this->framebufferHeight / 2);
       // Hide mouse, activate mouse input
     } else if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE){
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      this->showGui = true;
       // Show mouse, disable mouse input
     }
 
@@ -515,11 +530,40 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
     }
 }
 
-void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos) const {
+void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos) {
   if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
     // Update Camera
-    cout << "Mouse callback: " << xpos << ", " << ypos << endl;
-    // Compute the
+    cout << "Cursor Screen Coordinates: (" << xpos << ", " << ypos << ")"<< endl;
+    // Save the mouse screen coordinate
+    this->cursorScreenX = xpos;
+    this->cursorScreenY = ypos;
+    this->offsetX = this->cursorScreenX - (this->framebufferWidth / 2);
+    this->offsetY = this->cursorScreenY -  (this->framebufferHeight / 2);
+    cout << "Cursor Offset: (" << this->offsetX << ", " << this->offsetY << ")" << endl;
+
+    this->pitch += static_cast<GLfloat>(this->offsetY) * this->sensitivity;
+  	this->yaw += static_cast<GLfloat>(this->offsetX) * this->sensitivity;
+
+  	if (this->pitch > 80.f){
+      this->pitch = 80.f;
+
+    }	else if (this->pitch < -80.f){
+      this->pitch = -80.f;
+    }
+
+  	if (this->yaw > 360.f || this->yaw < -360.f){
+  			this->yaw = 0.f;
+    }
+
+    this->camFront.x = cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
+    this->camFront.y = sin(glm::radians(this->pitch));
+    this->camFront.z = sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
+
+    this->camFront = glm::normalize(this->camFront);
+    this->camRight = glm::normalize(glm::cross(this->camFront, this->worldUp));
+    this->camUp = glm::normalize(glm::cross(this->camRight, this->camFront));
+
+    glfwSetCursorPos(window, this->framebufferWidth/2, this->framebufferHeight / 2);
 
   } else {
     // Do nothing????????
