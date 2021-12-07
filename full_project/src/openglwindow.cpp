@@ -16,7 +16,6 @@ OpenGLWindow::OpenGLWindow(
     WINDOW_HEIGHT(WINDOW_HEIGHT),
     GL_VERSION_MAJOR(GL_VERSION_MAJOR),
     GL_VERSION_MINOR(GL_VERSION_MINOR),
-    // camera(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, -1.f)),
     startPos(glm::vec3(0.f, 0.f, 2.f)),
     startWorldUp(glm::vec3(0.f, 1.f, 0.f)),
     startFacing(glm::vec3(0.f, 0.f, -1.f))
@@ -26,9 +25,6 @@ OpenGLWindow::OpenGLWindow(
     this->framebufferWidth = this->WINDOW_WIDTH;
     this->framebufferHeight = this->WINDOW_HEIGHT;
 
-    // this->startPos = glm::vec3(0.f, 0.f, 2.f);
-    // this->startWorldUp = glm::vec3(0.f, 1.f, 0.f);
-    // this->startFacing = glm::vec3(0.f, 0.f, -1.f);
 
     this->camPosition = this->startPos;
     this->worldUp = this->startWorldUp;
@@ -39,7 +35,7 @@ OpenGLWindow::OpenGLWindow(
 
     this->pitch = 0.f;
     this->yaw = -90.f;
-    this->roll = 0.f;
+    // this->roll = 0.f;
     this->sensitivity = 0.1f;
     this->movementSpeed = 0.05f;
 
@@ -469,11 +465,11 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
     }
 
     // CAMERA
-    if (key == GLFW_KEY_E && action == GLFW_PRESS){
+    if (key == GLFW_KEY_E && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Up (E) Moves p0 and pref relative the camera's positive y-axis.
       this->moveCamera(UP);
     }
-    if (key == GLFW_KEY_Q && action == GLFW_PRESS){
+    if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Down (Q) Moves p0 and pref relative the camera's negative y-axis.
       this->moveCamera(DOWN);
     }
@@ -565,10 +561,8 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos) {
   if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
     // Update Camera
-    // cout << "Cursor Screen Coordinates: (" << xpos << ", " << ypos << ")"<< endl;
     this->offsetX = xpos - (this->framebufferWidth / 2);
     this->offsetY = (this->framebufferHeight / 2) - ypos;
-    // cout << "Cursor Offset: (" << this->offsetX << ", " << this->offsetY << ")" << endl;
 
     this->pitch += static_cast<GLfloat>(this->offsetY) * this->sensitivity;
   	this->yaw += static_cast<GLfloat>(this->offsetX) * this->sensitivity;

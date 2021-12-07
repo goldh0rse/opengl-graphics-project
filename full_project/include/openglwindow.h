@@ -1,14 +1,22 @@
 #ifndef OPENGLWINDOW_H_
 #define OPENGLWINDOW_H_
 
+#include <string>
+#include <vector>
+
+// Graphics
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
-#include <string>
-#include <vector>
 #include "SOIL2.h"
 
+// GUI
+#include "imgui.h"
+#include "ImGuiFileDialog.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
+// Local classes
 #include "shader.h"
 #include "texture.h"
 #include "material.h"
@@ -16,17 +24,12 @@
 #include "mesh.h"
 #include "mymodel.h"
 #include "loader.h"
-#include "camera.h"
 
-#include "imgui.h"
-#include "ImGuiFileDialog.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 
 using namespace std;
 
 // ENUMERATIONS
-// enum dir_enum       { FORWARD = 0, BACKWARD, LEFT, RIGHT };
+enum direction_enum { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
 enum shader_enum    { SHADER_CORE_PROGRAM = 0 };
 enum texture_enum   { TEX_CAT = 0, TEX_CAT_SPECULAR, TEX_WOOD, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
@@ -87,7 +90,6 @@ private:
   float dt;
   GLfloat pitch;
   GLfloat yaw;
-  GLfloat roll;
   GLfloat sensitivity;
   GLfloat movementSpeed;
 
