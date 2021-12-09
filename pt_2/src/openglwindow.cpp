@@ -16,28 +16,16 @@ OpenGLWindow::OpenGLWindow(
     WINDOW_HEIGHT(WINDOW_HEIGHT),
     GL_VERSION_MAJOR(GL_VERSION_MAJOR),
     GL_VERSION_MINOR(GL_VERSION_MINOR),
-    startPos(glm::vec3(0.f, 0.f, 2.f)),
-    startWorldUp(glm::vec3(0.f, 1.f, 0.f)),
-    startFacing(glm::vec3(0.f, 0.f, -1.f))
+    camera(
+      glm::vec3(0.f, 0.f, 2.f),
+      glm::vec3(0.f, 1.f, 0.f),
+      glm::vec3(0.f, 0.f, -1.f)
+    )
 {
 
     this->window = nullptr;
     this->framebufferWidth = this->WINDOW_WIDTH;
     this->framebufferHeight = this->WINDOW_HEIGHT;
-
-
-    this->camPosition = this->startPos;
-    this->worldUp = this->startWorldUp;
-    this->camFront = this->startFacing;
-    this->camRight = glm::vec3(0.f);
-    this->camRight = glm::normalize(glm::cross(this->camFront, this->worldUp));
-    this->camUp = glm::normalize(glm::cross(this->camRight, this->camFront));
-
-    this->pitch = 0.f;
-    this->yaw = -90.f;
-    // this->roll = 0.f;
-    this->sensitivity = 0.1f;
-    this->movementSpeed = 0.05f;
 
     this->projectType = true;
     this->fov = 90.f;
@@ -95,10 +83,6 @@ void OpenGLWindow::initialize(void){
     this->initLights();
     this->initUniforms();
 }
-// Accessors
-int OpenGLWindow::getWindowShouldClose(void){
-    return glfwWindowShouldClose(this->window);
-}
 
 // Modifiers
 void OpenGLWindow::render(void){
@@ -127,7 +111,7 @@ void OpenGLWindow::render(void){
 
 void OpenGLWindow::start(void){
   /*****************MAINLOOP**********************/
-  while(!this->getWindowShouldClose()){
+  while(!glfwWindowShouldClose(this->window)){
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -148,8 +132,6 @@ void OpenGLWindow::start(void){
 
 /*                           PRIVATE                                          */
 /******************************************************************************/
-// Attributes
-
 // Private functions
 void OpenGLWindow::initGLFW(void){
     // Initialize glfw
@@ -214,12 +196,12 @@ void OpenGLWindow::initMatrices(void){
     // this->camera = new Camera(this->camPosition, this->worldUp, this->camFront);
 
     // ViewMatrix
-    this->ViewMatrix = glm::mat4(1.f);
-    this->ViewMatrix = glm::lookAt(
-        this->camPosition,
-        this->camPosition + this->camFront,
-        this->worldUp
-    );
+    // this->ViewMatrix = glm::mat4(1.f);
+    // this->ViewMatrix = glm::lookAt(
+    //     this->camPosition,
+    //     this->camPosition + this->camFront,
+    //     this->worldUp
+    // );
 
     // ProjectionMatrix
     this->ProjectionMatrix = glm::mat4(1.f);
@@ -296,20 +278,21 @@ void OpenGLWindow::initLights(void){
 }
 
 void OpenGLWindow::initUniforms(void){
+    // Update ViewMatrix
     // Send Matricies to shader
-    this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
+    this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
     this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
-    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
+    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 }
 
 void OpenGLWindow::updateUniforms(void){
   // Update ViewMatrix
-  this->ViewMatrix = glm::lookAt(this->camPosition, this->camPosition + this->camFront, this->camUp);
+  this->camera.updateViewMatrix();
 
-  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
-  this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
+  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+  this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 
   // Update Uniforms
   this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
@@ -340,7 +323,7 @@ void OpenGLWindow::updateUniforms(void){
       this->nearPlane, this->farPlane
     );
 
-    // H(alpha)
+    // H(alpha), NOTE: glm::ortho Matricies are transposed.
     glm::mat4 h_alpha = glm::mat4(1.f);
     h_alpha[2][0] = this->obliqueScale * glm::cos(this->obliqueAngleRad);
     h_alpha[2][1] = this->obliqueScale * glm::sin(this->obliqueAngleRad);
@@ -419,33 +402,6 @@ void OpenGLWindow::DrawGui(void){
     ImGui::End();
 }
 
-void OpenGLWindow::moveCamera(const int direction){
-	//Update position vector
-	switch (direction){
-	case FORWARD:
-		this->camPosition += this->camFront * this->movementSpeed;// * dt;
-		break;
-	case BACKWARD:
-		this->camPosition -= this->camFront * this->movementSpeed;
-		break;
-	case LEFT:
-		this->camPosition -= this->camRight * this->movementSpeed;
-		break;
-	case RIGHT:
-		this->camPosition += this->camRight * this->movementSpeed;
-		break;
-  case UP:
-    this->camPosition += this->camUp * this->movementSpeed;
-    break;
-  case DOWN:
-    this->camPosition -= this->camUp * this->movementSpeed;
-    break;
-	default:
-		break;
-	}
-
-}
-
 // Callbacks
 void OpenGLWindow::framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) const {
   	if(glfwGetCurrentContext() == NULL){
@@ -465,27 +421,27 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
     // CAMERA
     if (key == GLFW_KEY_E && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Up (E) Moves p0 and pref relative the camera's positive y-axis.
-      this->moveCamera(UP);
+      this->camera.moveCamera(UP);
     }
     if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Down (Q) Moves p0 and pref relative the camera's negative y-axis.
-      this->moveCamera(DOWN);
+      this->camera.moveCamera(DOWN);
     }
     if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Forward (W) Moves p0 and pref relative the camera's negative(!) z-axis.
-      this->moveCamera(FORWARD);
+      this->camera.moveCamera(FORWARD);
     }
     if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Backwards (S) Moves p0 and pref relative the camera's positive z-axis.
-      this->moveCamera(BACKWARD);
+      this->camera.moveCamera(BACKWARD);
     }
     if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Right (D) Moves p0 and pref relative the camera's positive x-axis.
-      this->moveCamera(RIGHT);
+      this->camera.moveCamera(RIGHT);
     }
     if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)){
       // Left (A) Moves p0 and pref relative the camera's negative x-axis.
-      this->moveCamera(LEFT);
+      this->camera.moveCamera(LEFT);
     }
 
     // Activate Cursor
@@ -558,32 +514,11 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 void OpenGLWindow::cursor_callback(GLFWwindow* window, double xpos, double ypos) {
   if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
     // Update Camera
-    this->offsetX = xpos - (this->framebufferWidth / 2);
-    this->offsetY = (this->framebufferHeight / 2) - ypos;
+    GLfloat offsetX = xpos - (this->framebufferWidth / 2);
+    GLfloat offsetY = (this->framebufferHeight / 2) - ypos;
+    this->camera.updateCameraFacing(offsetX, offsetY);
 
-    this->pitch += static_cast<GLfloat>(this->offsetY) * this->sensitivity;
-  	this->yaw += static_cast<GLfloat>(this->offsetX) * this->sensitivity;
-
-  	if (this->pitch > 80.f){
-      this->pitch = 80.f;
-
-    }	else if (this->pitch < -80.f){
-      this->pitch = -80.f;
-    }
-
-  	if (this->yaw > 360.f || this->yaw < -360.f){
-  			this->yaw = 0.f;
-    }
-
-    this->camFront.x = cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
-    this->camFront.y = sin(glm::radians(this->pitch));
-    this->camFront.z = sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
-
-    this->camFront = glm::normalize(this->camFront);
-    this->camRight = glm::normalize(glm::cross(this->camFront, this->worldUp));
-    this->camUp = glm::normalize(glm::cross(this->camRight, this->camFront));
-
+    // Update cursor position
     glfwSetCursorPos(window, this->framebufferWidth/2, this->framebufferHeight / 2);
-
   }
 }

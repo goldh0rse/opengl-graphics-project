@@ -24,18 +24,19 @@
 #include "mesh.h"
 #include "mymodel.h"
 #include "loader.h"
+#include "camera.h"
 
 
 using namespace std;
 
 // ENUMERATIONS
-enum direction_enum { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
+// enum direction_enum { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
 enum shader_enum    { SHADER_CORE_PROGRAM = 0 };
 enum texture_enum   { TEX_CAT = 0, TEX_CAT_SPECULAR, TEX_WOOD, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
 enum mesh_enum      { MESH_QUAD = 0 };
 
-const float pi_f = 3.1415926f;
+// const float pi_f = 3.1415926f;
 
 class OpenGLWindow {
 public:
@@ -46,9 +47,6 @@ public:
     bool resizable
   );
   ~OpenGLWindow(void);
-
-  // Accessors
-  int getWindowShouldClose(void);
 
   // Functions
   void initialize(void);
@@ -76,22 +74,22 @@ private:
   const int GL_VERSION_MINOR;
 
   // MATRICES
-  // Camera camera;
-  glm::mat4 ViewMatrix;
-  const glm::vec3 startPos;
-  const glm::vec3 startWorldUp;
-  const glm::vec3 startFacing;
-
-	glm::vec3 camPosition;
-	glm::vec3 worldUp;
-  glm::vec3 camUp;
-	glm::vec3 camFront;
-  glm::vec3 camRight;
-  float dt;
-  GLfloat pitch;
-  GLfloat yaw;
-  GLfloat sensitivity;
-  GLfloat movementSpeed;
+  Camera camera;
+  // glm::mat4 ViewMatrix;
+  // const glm::vec3 startPos;
+  // const glm::vec3 startWorldUp;
+  // const glm::vec3 startFacing;
+  //
+	// glm::vec3 camPosition;
+	// glm::vec3 worldUp;
+  // glm::vec3 camUp;
+	// glm::vec3 camFront;
+  // glm::vec3 camRight;
+  // float dt;
+  // GLfloat pitch;
+  // GLfloat yaw;
+  // GLfloat sensitivity;
+  // GLfloat movementSpeed;
 
 
 	glm::mat4 ProjectionMatrix;
@@ -149,7 +147,6 @@ private:
   void updateUniforms(void);
   void DrawGui(void);
   void initImGui(void);
-  void moveCamera(const int direction);
 };
 
 #endif
