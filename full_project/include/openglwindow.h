@@ -47,9 +47,6 @@ public:
   );
   ~OpenGLWindow(void);
 
-  // Accessors
-  int getWindowShouldClose(void);
-
   // Functions
   void initialize(void);
   void start(void);

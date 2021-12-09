@@ -18,7 +18,7 @@ public:
 
   void updateCamera();
   void moveCamera();
-  
+
 private:
   // Attributes
   glm::mat4 ViewMatrix;

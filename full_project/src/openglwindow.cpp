@@ -95,10 +95,6 @@ void OpenGLWindow::initialize(void){
     this->initLights();
     this->initUniforms();
 }
-// Accessors
-int OpenGLWindow::getWindowShouldClose(void){
-    return glfwWindowShouldClose(this->window);
-}
 
 // Modifiers
 void OpenGLWindow::render(void){
@@ -127,7 +123,7 @@ void OpenGLWindow::render(void){
 
 void OpenGLWindow::start(void){
   /*****************MAINLOOP**********************/
-  while(!this->getWindowShouldClose()){
+  while(!glfwWindowShouldClose(this->window)){
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
