@@ -297,8 +297,6 @@ void OpenGLWindow::initLights(void){
 
 void OpenGLWindow::initUniforms(void){
     // Send Matricies to shader
-    // glm::mat4 ViewMatrix = this->camera.getViewMatrix();
-    // glm::vec3 cameraPos = this->camera.getPosition();
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
@@ -312,8 +310,6 @@ void OpenGLWindow::updateUniforms(void){
 
   this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
   this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
-  // this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-  // this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getPosition(), "cameraPos");
 
   // Update Uniforms
   this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
@@ -345,8 +341,10 @@ void OpenGLWindow::updateUniforms(void){
     );
 
     // H(alpha)
-    this->ProjectionMatrix[0][2] = this->obliqueScale * glm::cos(this->obliqueAngleRad);
-    this->ProjectionMatrix[1][2] = this->obliqueScale * glm::sin(this->obliqueAngleRad);
+    glm::mat4 h_alpha = glm::mat4(1.f);
+    h_alpha[2][0] = this->obliqueScale * glm::cos(this->obliqueAngleRad);
+    h_alpha[2][1] = this->obliqueScale * glm::sin(this->obliqueAngleRad);
+    this->ProjectionMatrix *= h_alpha;
   }
 
   this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
@@ -492,15 +490,14 @@ void OpenGLWindow::keyboard_input_callback(GLFWwindow* window, int key, int scan
 
     // Activate Cursor
     if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS){
+      // Hide mouse, disable mouse input
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
       this->showGui = false;
-      // glfwSetCursorPos(window, 0, 0);
       glfwSetCursorPos(window, this->framebufferWidth/2, this->framebufferHeight / 2);
-      // Hide mouse, activate mouse input
     } else if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE){
+      // Show mouse, enable mouse input
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
       this->showGui = true;
-      // Show mouse, disable mouse input
     }
 
     // TRANSLATE OBJECT
