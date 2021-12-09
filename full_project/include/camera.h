@@ -15,8 +15,20 @@ public:
   // Constructors & Destructor
   Camera(void);
   ~Camera(void);
+
+  void updateCamera();
+  void moveCamera();
+  
 private:
   // Attributes
+  glm::mat4 ViewMatrix;
+  glm::vec3 camPosition;
+  glm::vec3 camFace;
+  glm::vec3 camUp;
+  glm::vec3 camRight;
+
+  glm::vec3 worldUp;
+
 
 };
 

@@ -1,23 +1,25 @@
 #
-#  Linux and MS Windows Makefile for the test gui for Part 2
+#  Linux Makefile for Computer Graphics project
 #  Computer Graphics course
 #  Dept Computing Science, Umea University
 #  Stefan Johansson, stefanj@cs.umu.se
 #  Modified by Filip Henningsson, floop@cs.umu.se
+#  Modified by Klas Holmberg, hed16khg@cs.umu.se
 #
-
-# CHANGES FOR ImGui
-# The following flags are changed or added:
-# IMGUI_DIR, OBJS, IFLAGS, IMGUIFLAGS, and IMGUIFLAGS is added to CXXFLAGS
-
 SRC = ./src
 INCLUDES = ./include
-IMGUI_DIR = ./src/ImGui
-TARGET = 3DStudio
+TARGET =  3DStudio.app
+IMGUI_DIR = $(SRC)/ImGui
 
-OBJS = $(SRC)/openglwindow.o \
-	$(SRC)/geometryrender.o \
+OBJS = 	\
 	$(SRC)/main.o \
+	$(SRC)/openglwindow.o \
+	$(SRC)/shader.o \
+	$(SRC)/texture.o \
+	$(SRC)/material.o \
+	$(SRC)/mesh.o \
+	$(SRC)/primitive.o \
+	$(SRC)/mymodel.o \
 	$(IMGUI_DIR)/imgui.o \
 	$(IMGUI_DIR)/imgui_demo.o \
 	$(IMGUI_DIR)/imgui_draw.o \
@@ -31,39 +33,33 @@ CXX = g++
 
 DBFLAGS = -O0 -g3 -ggdb3 -fno-inline
 #DBFLAGS = -O2
-WFLAGS  = -Wall -std=c++11
+WFLAGS  = -Wall -std=c++11 #-Wextra
 
 # Uncomment if you have local libraries or headers in subfolders lib and include
-IFLAGS = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/ImGuiFileDialog -I$(INCLUDES)
-LFLAGS = #-Llib
+IFLAGS = -I$(INCLUDES) -I$(IMGUI_DIR) -I$(IMGUI_DIR)/ImGuiFileDialog
+LFLAGS = -Llibs
 
-IMGUIFLAGS = -DIMGUI_IMPL_OPENGL_LOADER_GLEW
-
-ifeq ($(OS), Windows_NT)
-# -DWINDOWS_BUILD needed to deal with Windows use 0f \ instead of / in path
-# Unless it's completely unnecessary and handled by the compiler.
-DEFS      = -DWINDOWS_BUILD
-GLFLAGS   = -DGLEW_STATIC
-OSLDFLAGS = -static -lglew32 -lglfw3 -lopengl32 -lgdi32 -luser32 -lkernel32
-else
 DEFS    = -DIMGUI_IMPL_OPENGL_LOADER_GL3W
 GLFLAGS = `pkg-config --cflags glfw3`
 # gl3w seemingly needs libdl
 LGLFLAGS = `pkg-config --libs glfw3` -lm -ldl -lGL -lGLEW -lglfw
-ELDFLAGS = -export-dynamic -lXext -lX11
-endif
+ELDFLAGS = -export-dynamic -lXext -lX11 -lsoil2
 
-CXXFLAGS = $(DBFLAGS) $(DEFS) $(WFLAGS) $(IFLAGS) $(DFLAGS) $(GLFLAGS) $(IMGUIFLAGS)
+#GLM & SOIL
+GLMFLAGS = `pkg-config --cflags-only-I glm`
+
+CXXFLAGS = $(WFLAGS) $(DFLAGS) $(GLFLAGS)
+
+CXXFLAGS = $(DBFLAGS) $(DEFS) $(WFLAGS) $(IFLAGS) $(DFLAGS) $(GLFLAGS) $(GLMFLAGS)
 LDFLAGS  = $(ELDFLAGS) $(LGLFLAGS) $(OSLDFLAGS)
 
 
 all: $(TARGET)
 clean:
-ifeq ($(OS), Windows_NT)
-	del /Q /S *.o
-else
 	rm -f $(OBJS) $(TARGET)
-endif
+build:
+	rm -f $(OBJS) $(TARGET)
+	make
 
 .SUFFIXES: .o .c .cpp .cxx .cc
 .cpp.o:

@@ -1,22 +1,16 @@
-/*
- *  Workshop 1
- *  Computer Graphics course
- *  Dept Computing Science, Umea University
- *  Stefan Johansson, stefanj@cs.umu.se
- */
-extern "C"
+#include "callbackmanager.h"
 
-#include "geometryrender.h"
-#include "glfwcallbackmanager.h"
+OpenGLWindow* CallbackManager::app = nullptr;
 
-OpenGLWindow* glfwCallbackManager::app = nullptr;
+int main(int argc, char const *argv[]) {
 
-int main(int argc, char **argv)
-{
+  OpenGLWindow* window = new OpenGLWindow(
+    "Project", 768, 1024, 4, 3, true
+  );
+  CallbackManager::initCallbacks(window);
+  window->initialize();
 
-    GeometryRender app("Workshop 1", 1024, 768);
-    glfwCallbackManager::initCallbacks(&app);
-    app.initialize();
+  window->start();
 
-    app.start();
+  return 0;
 }
