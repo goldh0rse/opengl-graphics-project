@@ -273,7 +273,11 @@ void OpenGLWindow::initModels(string fileName) {
 
 void OpenGLWindow::initLights(void){
     this->lights.push_back(
-        new glm::vec3(0.f, 0.f, 1.f)
+        new Light(
+          glm::vec3(0.f, 0.f, 1.f),      // Light position
+          glm::vec3(1.f, 1.f, 1.f),  // Light Color
+          glm::vec3(0.5f, 0.5f, 0.5f)
+        )
     );
 }
 
@@ -283,11 +287,15 @@ void OpenGLWindow::initUniforms(void){
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
-    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
+    this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
+    // this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
     this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 }
 
 void OpenGLWindow::updateUniforms(void){
+  this->updateLights();
+  this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
+
   // Update ViewMatrix
   this->camera.updateViewMatrix();
 
@@ -333,6 +341,30 @@ void OpenGLWindow::updateUniforms(void){
   this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 }
 
+void OpenGLWindow::updateLights(void){
+  for (auto &i: this->lights){
+    // change light values
+    i->updatePosition(
+      this->lightPos[0],
+      this->lightPos[1],
+      this->lightPos[2]
+    );
+
+    i->updateColor(
+      this->lightColor[0],
+      this->lightColor[1],
+      this->lightColor[2]
+    );
+
+    i->updateAmbient(
+      this->ambientColor[0],
+      this->ambientColor[1],
+      this->ambientColor[2]
+    );
+  }
+}
+
+
 // ImGui functions
 void OpenGLWindow::initImGui(void){
   IMGUI_CHECKVERSION();
@@ -351,33 +383,89 @@ void OpenGLWindow::initImGui(void){
 }
 
 void OpenGLWindow::DrawGui(void){
-    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
-    static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
+  IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
-    ImGui::Begin("3D Studio");
+  // Change these variables to be class variables instead of static
+  // and delete the static declarations below
+  static string textureFileName;
+  static string textureFilePath;
 
-    if (ImGui::CollapsingHeader("OBJ File")) {
-        ImGui::Text("OBJ file: %s", this->objFileName.c_str());
-        if (ImGui::Button("Open File"))
-            igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
+  // ...until here
 
-        if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
-            if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
-                this->objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
-                this->objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+  static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
 
-                this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+  ImGui::Begin("3D Studio");
 
-                // cout << "Full FilePathName: " << this->objFullPath << endl;
-                cout << "OBJ file: " << this->objFileName << endl << "Path: " << this->objFilePath << endl;
+  if (ImGui::CollapsingHeader("OBJ File")) {
+      ImGui::Text("OBJ file: %s", this->objFileName.c_str());
+      if (ImGui::Button("Open File"))
+          igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
 
-                this->initModels(this->objFullPath);
-            }
-            // close
-            igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
-        }
-    }
+      if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
+          if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
+              this->objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
+              this->objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+
+              this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+
+              // cout << "Full FilePathName: " << this->objFullPath << endl;
+              cout << "OBJ file: " << this->objFileName << endl << "Path: " << this->objFilePath << endl;
+
+              this->initModels(this->objFullPath);
+          }
+          // close
+          igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+      }
+  }
+
+  if (ImGui::CollapsingHeader("Light")) {
+      ImGui::Text("Light source position");
+      ImGui::PushItemWidth(100);
+      ImGui::InputFloat("x", &this->lightPos[0], 0.5f, 1.0f, "%1.1f"); ImGui::SameLine();
+      ImGui::InputFloat("y", &this->lightPos[1], 0.5f, 1.0f, "%1.1f"); ImGui::SameLine();
+      ImGui::InputFloat("z", &this->lightPos[2], 0.5f, 1.0f, "%1.1f");
+      ImGui::PopItemWidth();
+
+      ImGui::Text("Light source intensity:");
+      ImGui::ColorEdit3("Light", this->lightColor);
+
+      ImGui::Text("Ambient light intensity:");
+      ImGui::ColorEdit3("Ambient", this->ambientColor);
+  }
+
+  if (ImGui::CollapsingHeader("Object Material")) {
+      ImGui::Text("Ambient coefficient:");
+      ImGui::ColorEdit3("Ambient color", this->materialAmbient);
+
+      ImGui::Text("Diffuse coefficient:");
+      ImGui::ColorEdit3("Diffuse color", this->materialDiffuse);
+
+      ImGui::Text("Specular coefficient:");
+      ImGui::ColorEdit3("Specular color", this->materialSpecular);
+
+      ImGui::SliderFloat("Shininess", &this->materialShininess, 1.0f, 1000.0f, "%1.0f", flags);
+  }
+
+  if (ImGui::CollapsingHeader("Object Texture")) {
+      ImGui::Checkbox("Show texture", &this->textureShow);
+      ImGui::Text("Texture file: %s", textureFileName.c_str());
+      if (ImGui::Button("Open Texture File"))
+          igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Select Texture File",
+                                                        ".bmp,.dds,.hdr,.pic,.png,.psd,.jpg,.tga", ".");
+
+      if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
+          if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
+              textureFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
+              textureFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+              cout << "Texture file: " << textureFileName << endl << "Path: " << textureFilePath << endl;
+          } else {
+              // Return a message to the user if the file could not be opened
+          }
+          // close
+          igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+      }
+  }
 
     if (ImGui::CollapsingHeader("Projection")) {
         // THIS IS WHERE I NEED TO CHANGE THE PROJECTION

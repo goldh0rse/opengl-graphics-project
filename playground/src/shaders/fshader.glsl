@@ -8,6 +8,12 @@ struct Material {
   sampler2D specularTex;
 };
 
+struct Light {
+  vec3 position;
+  vec3 color;
+  vec3 ambient;
+};
+
 in vec3 vs_position;
 in vec3 vs_color;
 in vec2 vs_texcoord;
@@ -18,7 +24,8 @@ out vec4 fs_color;
 
 // Uniforms
 uniform Material material;
-uniform vec3 lightPos0;
+uniform Light light;
+//uniform vec3 lightPos0;
 uniform vec3 cameraPos;
 
 // Functions
@@ -37,7 +44,7 @@ vec3 calcSpecular(Material material, vec3 position, vec3 normal, vec3 lightPos, 
   vec3 reflectDirVec = normalize(reflect(lightToPosDirVec, normalize(normal)));
   vec3 posToViewDirVec = normalize(cameraPos - position);
   float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 50);
-  return material.specular * specularConstant * texture(material.specularTex, vs_texcoord).rgb;
+  return material.specular * specularConstant; //* texture(material.specularTex, vs_texcoord).rgb;
 }
 
 void main() {
@@ -47,17 +54,17 @@ void main() {
   vec3 ambientFinal = calcAmbient(material);
 
   // Diffuse Lights
-  vec3 diffuseFinal = calcDiffuse(material, vs_position, vs_normal, lightPos0);
+  vec3 diffuseFinal = calcDiffuse(material, vs_position, vs_normal, light.position);
 
   // Specular Light
-  vec3 specularFinal = calcSpecular(material, vs_position, vs_normal, lightPos0, cameraPos);
+  vec3 specularFinal = calcSpecular(material, vs_position, vs_normal, light.position, cameraPos);
 
   // Attenuation
 
   // Final Light
   fs_color =
     //texture(material.diffuseTex, vs_texcoord) *
-    vec4(vs_color, 1.f) *
+    vec4(vs_color * light.color, 1.f) *
     (
       // Lights
       vec4(ambientFinal, 1.f) +
