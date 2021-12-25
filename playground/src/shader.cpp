@@ -65,6 +65,12 @@ void Shader::set1i(GLint value, const GLchar* name){
   this->unuse();
 }
 
+void Shader::set1f(GLfloat value, const GLchar* name){
+  this->use();
+  glUniform1f(glGetUniformLocation(this->id, name), value);
+  this->unuse();
+}
+
 // Private
 string Shader::loadShaderSource(const char* fileName){
   string temp = "";
@@ -112,7 +118,7 @@ void Shader::linkProgram(
   GLuint vertexShader,
   GLuint fragmentShader,
   GLuint geometryShader){
-    
+
   GLint success;
   this->id = glCreateProgram();
 

@@ -4,7 +4,7 @@ Material::Material(
   glm::vec3 ambient,
   glm::vec3 diffuse,
   glm::vec3 specular,
-  float alpha,
+  GLfloat alpha,
   GLint diffuseTex,
   GLint specularTex){
     this->ambient = ambient;
@@ -19,6 +19,7 @@ void Material::sendToShader(Shader& program){
   program.setVec3f(this->ambient, "material.ambient");
   program.setVec3f(this->diffuse, "material.diffuse");
   program.setVec3f(this->specular, "material.specular");
+  program.set1f(this->alpha, "material.alpha");
   program.set1i(this->diffuseTex, "material.diffuseTex");
   program.set1i(this->specularTex, "material.specularTex");
 }
