@@ -231,8 +231,9 @@ void OpenGLWindow::initMaterials(void){
             glm::vec3(0.5f),
             glm::vec3(1.f),
             glm::vec3(1.f),
-            0,
-            1
+            1.0f,
+            0, // Textures
+            1  // Textures
         )
     );
 }
@@ -295,6 +296,8 @@ void OpenGLWindow::initUniforms(void){
 void OpenGLWindow::updateUniforms(void){
   this->updateLights();
   this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
+
+  this->updateMaterials();
 
   // Update ViewMatrix
   this->camera.updateViewMatrix();
@@ -364,6 +367,28 @@ void OpenGLWindow::updateLights(void){
   }
 }
 
+void OpenGLWindow::updateMaterials(void){
+  for(auto &i: this->materials){
+    i->updateAmbient(
+      this->materialAmbient[0],
+      this->materialAmbient[1],
+      this->materialAmbient[2]
+    );
+
+    i->updateDiffuse(
+      this->materialDiffuse[0],
+      this->materialDiffuse[1],
+      this->materialDiffuse[2]
+    );
+
+    i->updateSpecular(
+      this->materialSpecular[0],
+      this->materialSpecular[1],
+      this->materialSpecular[2]
+    );
+    i->updateAlpha(this->materialShininess);
+  }
+}
 
 // ImGui functions
 void OpenGLWindow::initImGui(void){

@@ -148,7 +148,8 @@ private:
 
   void updateUniforms(void);
   void updateLights(void);
-
+  void updateMaterials(void);
+  
   void DrawGui(void);
   void initImGui(void);
 };
