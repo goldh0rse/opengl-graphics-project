@@ -25,6 +25,7 @@
 #include "mymodel.h"
 #include "loader.h"
 #include "camera.h"
+#include "light.h"
 
 
 using namespace std;
@@ -73,25 +74,22 @@ private:
 	const int GL_VERSION_MAJOR;
   const int GL_VERSION_MINOR;
 
-  // MATRICES
+
   Camera camera;
-  // glm::mat4 ViewMatrix;
-  // const glm::vec3 startPos;
-  // const glm::vec3 startWorldUp;
-  // const glm::vec3 startFacing;
-  //
-	// glm::vec3 camPosition;
-	// glm::vec3 worldUp;
-  // glm::vec3 camUp;
-	// glm::vec3 camFront;
-  // glm::vec3 camRight;
-  // float dt;
-  // GLfloat pitch;
-  // GLfloat yaw;
-  // GLfloat sensitivity;
-  // GLfloat movementSpeed;
 
+  // GUI
 
+  // Lights
+  float lightPos[3] = {0.0f, 0.0f, 0.0f};
+  float lightColor[3] = {1.0f, 1.0f, 1.0f};
+  float ambientColor[3] = {0.2f, 0.2f, 0.2f};
+
+  float materialAmbient[3] = {.5f, .5f, .5f};
+  float materialDiffuse[3] = {.5f, .5f, .5f};
+  float materialSpecular[3] = {.5f, .5f, .5f};
+  float materialShininess = 1.0f;
+
+  // Projection
 	glm::mat4 ProjectionMatrix;
   bool projectType;
 	float fov;
@@ -116,6 +114,10 @@ private:
   string objFilePath;
   string objFullPath;
 
+  // Texture File Stuff
+  bool textureShow = false;
+
+
   // Shaders
   vector<Shader*> shaders;
 
@@ -129,7 +131,7 @@ private:
   vector<Model*> models;
 
   // Lights
-  vector<glm::vec3*> lights;
+  vector<Light*> lights;
 
   // Private functions
   void initGLFW(void);
@@ -145,6 +147,8 @@ private:
   void initUniforms(void);
 
   void updateUniforms(void);
+  void updateLights(void);
+
   void DrawGui(void);
   void initImGui(void);
 };

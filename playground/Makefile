@@ -21,6 +21,7 @@ OBJS = 	\
 	$(SRC)/primitive.o \
 	$(SRC)/mymodel.o \
 	$(SRC)/camera.o \
+	$(SRC)/light.o \
 	$(IMGUI_DIR)/imgui.o \
 	$(IMGUI_DIR)/imgui_demo.o \
 	$(IMGUI_DIR)/imgui_draw.o \
