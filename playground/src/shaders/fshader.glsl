@@ -27,6 +27,8 @@ out vec4 fs_color;
 uniform Material material;
 uniform Light light;
 uniform vec3 cameraPos;
+uniform bool showTexture;
+
 
 // Functions
 vec3 calcAmbient(Material material){
@@ -48,8 +50,6 @@ vec3 calcSpecular(Material material, vec3 position, vec3 normal, Light light, ve
 }
 
 void main() {
-  //fs_color = vec4(vs_color, 1.f);
-
   // Ambient Lights
   vec3 ambientFinal = calcAmbient(material);
 
@@ -62,13 +62,25 @@ void main() {
   // Attenuation
 
   // Final Light
-  fs_color =
-    //texture(material.diffuseTex, vs_texcoord) *
-    vec4(vs_color * light.color, 1.f) *
-    (
-      // Lights
-      vec4(ambientFinal, 1.f) +
-      vec4(diffuseFinal, 1.f) +
-      vec4(specularFinal, 1.f)
-    );
+  if (showTexture){
+    fs_color =
+      texture(material.diffuseTex, vs_texcoord) *
+      vec4(vs_color * light.color, 1.f) *
+      (
+        // Lights
+        vec4(ambientFinal, 1.f) +
+        vec4(diffuseFinal, 1.f) +
+        vec4(specularFinal, 1.f)
+      );
+  } else {
+    fs_color =
+      vec4(vs_color * light.color, 1.f) *
+      (
+        // Lights
+        vec4(ambientFinal, 1.f) +
+        vec4(diffuseFinal, 1.f) +
+        vec4(specularFinal, 1.f)
+      );
+  }
+
 }

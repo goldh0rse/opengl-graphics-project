@@ -74,10 +74,8 @@ private:
 	const int GL_VERSION_MAJOR;
   const int GL_VERSION_MINOR;
 
-
+  // Camera
   Camera camera;
-
-  // GUI
 
   // Lights
   float lightPos[3] = {0.0f, 0.0f, 0.0f};
@@ -91,23 +89,23 @@ private:
 
   // Projection
 	glm::mat4 ProjectionMatrix;
-  bool projectType;
-	float fov;
-	float nearPlane;
-	float farPlane;
-  float top;
+  bool projectType = true;
+	float fov = 90.f;
+	float nearPlane = 0.1f;
+	float farPlane = 1000.f;
+  float top = 1.f;
   float bottom;
   float left;
   float right;
-  float obliqueScale;
-  float obliqueAngleRad;
+  float obliqueScale = 0.f;
+  float obliqueAngleRad = pi_f/4.f;
 
   // Cursors stuff
   double cursorScreenX;
   double cursorScreenY;
   double offsetX;
   double offsetY;
-  bool showGui;
+  bool showGui = true;
 
   // Object file-stuff
   string objFileName;
@@ -115,6 +113,8 @@ private:
   string objFullPath;
 
   // Texture File Stuff
+  string textureFileName;
+  string textureFilePath;
   bool textureShow = false;
 
 
@@ -149,7 +149,8 @@ private:
   void updateUniforms(void);
   void updateLights(void);
   void updateMaterials(void);
-  
+  void updateTextures(void);
+
   void DrawGui(void);
   void initImGui(void);
 };

@@ -27,16 +27,6 @@ OpenGLWindow::OpenGLWindow(
     this->framebufferWidth = this->WINDOW_WIDTH;
     this->framebufferHeight = this->WINDOW_HEIGHT;
 
-    this->projectType = true;
-    this->fov = 90.f;
-    this->nearPlane = 0.1f; // Due to where we want clipping to be
-    this->farPlane = 1000.f; // Test on itchy, if slow dump to 100.f
-    this->top = 1.0f;
-    this->obliqueScale = 0.0f;
-    this->obliqueAngleRad = pi_f/4.0f;
-
-    this->showGui = true;
-
     this->initGLFW();
     this->initWindow(title, resizable);
     this->initGLEW();
@@ -228,12 +218,12 @@ void OpenGLWindow::initTextures(void){
 void OpenGLWindow::initMaterials(void){
     this->materials.push_back(
         new Material(
-            glm::vec3(0.5f),
-            glm::vec3(1.f),
-            glm::vec3(1.f),
-            1.0f,
-            0, // Textures
-            1  // Textures
+            glm::vec3(0.5f),  // Ambient
+            glm::vec3(1.f),   // Diffuse
+            glm::vec3(1.f),   // Specular
+            1.0f,             // Alpha
+            0,                // Texture
+            1                 // Specular map
         )
     );
 }
@@ -289,7 +279,7 @@ void OpenGLWindow::initUniforms(void){
     this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
     this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
-    // this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
+    this->shaders[SHADER_CORE_PROGRAM]->set1i(this->textureShow, "showTexture");
     this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 }
 
@@ -304,11 +294,7 @@ void OpenGLWindow::updateUniforms(void){
 
   this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
   this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
-
-  // Update Uniforms
-  this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
-  this->shaders[SHADER_CORE_PROGRAM]->set1i(1, "texture1");
-
+  this->shaders[SHADER_CORE_PROGRAM]->set1i(this->textureShow, "showTexture");
   // Update framebuffersize & ProjectionMatrix
   glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
@@ -390,6 +376,10 @@ void OpenGLWindow::updateMaterials(void){
   }
 }
 
+void OpenGLWindow::updateTextures(void){
+  // this->shader[SHADER_CORE_PROGRAM]
+}
+
 // ImGui functions
 void OpenGLWindow::initImGui(void){
   IMGUI_CHECKVERSION();
@@ -411,12 +401,6 @@ void OpenGLWindow::DrawGui(void){
 
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
-  // Change these variables to be class variables instead of static
-  // and delete the static declarations below
-  static string textureFileName;
-  static string textureFilePath;
-
-  // ...until here
 
   static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
 
@@ -481,9 +465,10 @@ void OpenGLWindow::DrawGui(void){
 
       if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
           if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
-              textureFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
-              textureFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-              cout << "Texture file: " << textureFileName << endl << "Path: " << textureFilePath << endl;
+              //textureFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
+              //textureFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+              this->textureFilePath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+              cout << "Texture file: " << this->textureFilePath << endl;
           } else {
               // Return a message to the user if the file could not be opened
           }
