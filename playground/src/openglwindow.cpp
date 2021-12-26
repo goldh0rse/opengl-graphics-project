@@ -222,8 +222,7 @@ void OpenGLWindow::initMaterials(void){
             glm::vec3(1.f),   // Diffuse
             glm::vec3(1.f),   // Specular
             1.0f,             // Alpha
-            0,                // Texture
-            1                 // Specular map
+            0                 // Texture
         )
     );
 }
@@ -254,7 +253,6 @@ void OpenGLWindow::initModels(string fileName) {
         glm::vec3(0.f),
         this->materials[MAT_1],
         this->textures[TEX_WOOD],
-        this->textures[TEX_WOOD_SPECULAR],
         meshes
     ));
 

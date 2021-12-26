@@ -4,13 +4,11 @@ Model::Model(
     glm::vec3 position,
     Material* material,
     Texture* overTexDif,
-    Texture* OverTexSpec,
     vector<Mesh*> meshes
 ){
     this->position = position;
     this->material = material;
     this->overideTextureDiffuse = overTexDif;
-    this->overideTextureSpecular = OverTexSpec;
     for(auto*i : meshes){
         this->meshes.push_back(new Mesh(*i));
     }
@@ -42,10 +40,9 @@ void Model::render(Shader* shader){
     shader->use();
 
     //Draw
-    for (auto& i : this->meshes){   
+    for (auto& i : this->meshes){
         //Activate texture for each mesh
         this->overideTextureDiffuse->bind(0);
-        this->overideTextureSpecular->bind(1);
 
         i->render(); //Activates shader also
     }
@@ -55,5 +52,3 @@ void Model::render(Shader* shader){
 void Model::updateUniforms(void){
 
 }
-
-
