@@ -22,8 +22,7 @@ public:
     glm::vec3 diffuse,
     glm::vec3 specular,
     GLfloat alpha,
-    GLint diffuseTex,
-    GLint specularTex
+    GLint diffuseTex
   );
   ~Material(){};
 
@@ -32,6 +31,7 @@ public:
   void updateDiffuse(float r, float g, float b);
   void updateSpecular(float r, float g, float b);
   void updateAlpha(float alpha);
+  void updateDiffuseTex(GLint diffuseTex);
 
 private:
   glm::vec3 ambient;
@@ -39,7 +39,6 @@ private:
   glm::vec3 specular;
   float alpha;
   GLint diffuseTex;
-  GLint specularTex;
 };
 
 

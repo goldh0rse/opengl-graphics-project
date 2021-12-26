@@ -122,7 +122,7 @@ void OpenGLWindow::start(void){
 
 /*                           PRIVATE                                          */
 /******************************************************************************/
-// Private functions
+// Initializers
 void OpenGLWindow::initGLFW(void){
     // Initialize glfw
     if (!glfwInit()){
@@ -209,10 +209,7 @@ void OpenGLWindow::initShaders(void){
 
 void OpenGLWindow::initTextures(void){
     this->textures.push_back(new Texture("resources/images/pusheen.png", GL_TEXTURE_2D));
-    this->textures.push_back(new Texture("resources/images/pusheen_specular.png", GL_TEXTURE_2D));
-
     this->textures.push_back(new Texture("resources/images/wood.png", GL_TEXTURE_2D));
-    this->textures.push_back(new Texture("resources/images/wood_specular.png", GL_TEXTURE_2D));
 }
 
 void OpenGLWindow::initMaterials(void){
@@ -222,8 +219,7 @@ void OpenGLWindow::initMaterials(void){
             glm::vec3(1.f),   // Diffuse
             glm::vec3(1.f),   // Specular
             1.0f,             // Alpha
-            0,                // Texture
-            1                 // Specular map
+            0                 // Texture
         )
     );
 }
@@ -254,7 +250,6 @@ void OpenGLWindow::initModels(string fileName) {
         glm::vec3(0.f),
         this->materials[MAT_1],
         this->textures[TEX_WOOD],
-        this->textures[TEX_WOOD_SPECULAR],
         meshes
     ));
 
@@ -283,10 +278,12 @@ void OpenGLWindow::initUniforms(void){
     this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 }
 
+// Modifiers
 void OpenGLWindow::updateUniforms(void){
   this->updateLights();
   this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
 
+  this->updateTextures();
   this->updateMaterials();
 
   // Update ViewMatrix
@@ -378,6 +375,13 @@ void OpenGLWindow::updateMaterials(void){
 
 void OpenGLWindow::updateTextures(void){
   // this->shader[SHADER_CORE_PROGRAM]
+  if(this->loadedNewTexture){
+    // Update materials
+    for(auto &i: this->models){
+      i->updateDiffuseTex(this->textures[TEX_LOADABLE]);
+    }
+    this->loadedNewTexture = false;
+  }
 }
 
 // ImGui functions
@@ -469,8 +473,17 @@ void OpenGLWindow::DrawGui(void){
               //textureFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
               this->textureFilePath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
               cout << "Texture file: " << this->textureFilePath << endl;
+              if(this->textures.size() > 2){
+                this->textures.pop_back();
+              }
+              this->textures.push_back(
+                new Texture(this->textureFilePath.c_str(), GL_TEXTURE_2D)
+              );
+              this->loadedNewTexture = true;
+
           } else {
               // Return a message to the user if the file could not be opened
+              this->loadedNewTexture = false;
           }
           // close
           igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");

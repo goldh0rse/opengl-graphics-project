@@ -6,7 +6,6 @@ struct Material {
   vec3 specular;
   float alpha;
   sampler2D diffuseTex;
-  sampler2D specularTex;
 };
 
 struct Light {
