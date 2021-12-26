@@ -52,3 +52,7 @@ void Model::render(Shader* shader){
 void Model::updateUniforms(void){
 
 }
+
+void Model::updateDiffuseTex(Texture* texture){
+  this->overideTextureDiffuse = texture;
+}

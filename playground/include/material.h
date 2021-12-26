@@ -31,6 +31,7 @@ public:
   void updateDiffuse(float r, float g, float b);
   void updateSpecular(float r, float g, float b);
   void updateAlpha(float alpha);
+  void updateDiffuseTex(GLint diffuseTex);
 
 private:
   glm::vec3 ambient;

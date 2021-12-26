@@ -21,6 +21,7 @@ public:
     void render(Shader* shader);
     void update(void);
     void updateUniforms(void);
+    void updateDiffuseTex(Texture* texture);
     inline vector<Mesh*> getMeshes(void) { return meshes; }
 
 private:

@@ -42,3 +42,7 @@ void Material::updateSpecular(float r, float g, float b){
 void Material::updateAlpha(float alpha){
   this->alpha = alpha;
 }
+
+void Material::updateDiffuseTex(GLint diffuseTex){
+  this->diffuseTex = diffuseTex;
+}

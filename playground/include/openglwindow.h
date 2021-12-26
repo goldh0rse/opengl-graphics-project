@@ -31,13 +31,11 @@
 using namespace std;
 
 // ENUMERATIONS
-// enum direction_enum { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
 enum shader_enum    { SHADER_CORE_PROGRAM = 0 };
-enum texture_enum   { TEX_CAT = 0, TEX_CAT_SPECULAR, TEX_WOOD, TEX_WOOD_SPECULAR };
+enum texture_enum   { TEX_CAT = 0, TEX_WOOD, TEX_LOADABLE };
+enum specular_enum  { TEX_CAT_SPECULAR, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
 enum mesh_enum      { MESH_QUAD = 0 };
-
-// const float pi_f = 3.1415926f;
 
 class OpenGLWindow {
 public:
@@ -116,6 +114,7 @@ private:
   string textureFileName;
   string textureFilePath;
   bool textureShow = false;
+  bool loadedNewTexture = false;
 
 
   // Shaders
