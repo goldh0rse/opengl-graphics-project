@@ -1,2 +1,2 @@
 # opengl-graphics-project
-Repository the course project on the  computer graphics course at Umeå University 
+Repository for the course project on the introductory computer graphics course at Umeå University 
