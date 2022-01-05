@@ -20,22 +20,22 @@ using namespace std;
 
 static vector<Vertex> loadObject(string file_name){
     //Vertex portions
-	std::vector<glm::fvec3> vertex_positions;
-	std::vector<glm::fvec2> vertex_texcoords;
-	std::vector<glm::fvec3> vertex_normals;
+	vector<glm::fvec3> vertex_positions;
+	vector<glm::fvec2> vertex_texcoords;
+	vector<glm::fvec3> vertex_normals;
 
 	//Face vectors
-	std::vector<GLint> vertex_position_indicies;
-	std::vector<GLint> vertex_texcoord_indicies;
-	std::vector<GLint> vertex_normal_indicies;
+	vector<GLint> vertex_position_indicies;
+	vector<GLint> vertex_texcoord_indicies;
+	vector<GLint> vertex_normal_indicies;
 
 	//Vertex array
-	std::vector<Vertex> vertices;
+	vector<Vertex> vertices;
 
-	std::stringstream ss;
-	std::ifstream in_file(file_name);
-	std::string line = "";
-	std::string prefix = "";
+	stringstream ss;
+	ifstream in_file(file_name);
+	string line = "";
+	string prefix = "";
 	glm::vec3 temp_vec3;
 	glm::vec2 temp_vec2;
 	GLint temp_glint = 0;
@@ -47,7 +47,7 @@ static vector<Vertex> loadObject(string file_name){
 	}
 
 	//Read one line at a time
-	while (std::getline(in_file, line)){
+	while (getline(in_file, line)){
 		//Get the prefix of the line
 		ss.clear();
 		ss.str(line);
@@ -63,14 +63,14 @@ static vector<Vertex> loadObject(string file_name){
 
 		} else if (prefix == "v") { // Vertex Name
 			ss >> temp_vec3.x >> temp_vec3.y >> temp_vec3.z;
-			if (std::abs(temp_vec3.x) > vMax)
-				vMax = std::abs(temp_vec3.x);
+			if (abs(temp_vec3.x) > vMax)
+				vMax = abs(temp_vec3.x);
 
-			if (std::abs(temp_vec3.y) > vMax)
-				vMax = std::abs(temp_vec3.y);
+			if (abs(temp_vec3.y) > vMax)
+				vMax = abs(temp_vec3.y);
 
-			if (std::abs(temp_vec3.z) > vMax)
-				vMax = std::abs(temp_vec3.z);
+			if (abs(temp_vec3.z) > vMax)
+				vMax = abs(temp_vec3.z);
 
 			vertex_positions.push_back(temp_vec3);
 
