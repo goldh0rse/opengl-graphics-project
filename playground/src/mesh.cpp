@@ -27,7 +27,7 @@ Mesh::Mesh(
     for (size_t i = 0; i < this->nrOfIndices; i++){
       this->indices[i] = indices[i];
     }
-    
+
 
     this->initVAO();
     this->updateModelMatrix();
@@ -80,7 +80,7 @@ Mesh::Mesh(const Mesh& obj){
   this->indices = new GLuint[this->nrOfIndices];
   for (size_t i = 0; i < this->nrOfIndices; i++){
     this->indices[i] = obj.indices[i];
-  }    
+  }
 
   this->initVAO();
   this->updateModelMatrix();
@@ -145,10 +145,6 @@ void Mesh::move(const glm::vec3 position){
 
 void Mesh::rotate(const glm::vec3 rotation){
   this->rotation += rotation;
-
-  // if(this->rotation > 360){
-  //   // Implement later
-  // }
 }
 
 void Mesh::scaleMesh(const glm::vec3 scale){

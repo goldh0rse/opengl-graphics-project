@@ -83,7 +83,7 @@ void OpenGLWindow::render(void){
     this->updateUniforms();
 
     for (auto&i : this->models)
-		  i->render(this->shaders[SHADER_CORE_PROGRAM]);
+		  i->render(this->shaders[PHONG_SHADER]);
 
 
     ImGui::Render();
@@ -94,7 +94,7 @@ void OpenGLWindow::render(void){
     glFlush();
 
     glBindVertexArray(0);
-    this->shaders[SHADER_CORE_PROGRAM]->unuse();
+    this->shaders[PHONG_SHADER]->unuse();
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -183,16 +183,6 @@ void OpenGLWindow::initOpenGLOptions(void){
 }
 
 void OpenGLWindow::initMatrices(void){
-    // this->camera = new Camera(this->camPosition, this->worldUp, this->camFront);
-
-    // ViewMatrix
-    // this->ViewMatrix = glm::mat4(1.f);
-    // this->ViewMatrix = glm::lookAt(
-    //     this->camPosition,
-    //     this->camPosition + this->camFront,
-    //     this->worldUp
-    // );
-
     // ProjectionMatrix
     this->ProjectionMatrix = glm::mat4(1.f);
     this->ProjectionMatrix = glm::perspective(
@@ -231,7 +221,7 @@ void OpenGLWindow::initModels(string fileName) {
 
     meshes.push_back(
         new Mesh(
-            this->shaders[SHADER_CORE_PROGRAM],
+            this->shaders[PHONG_SHADER],
             mesh.data(), mesh.size(),
             NULL, 0,
             glm::vec3(1.f, 0.f, 0.f),
@@ -270,18 +260,18 @@ void OpenGLWindow::initLights(void){
 void OpenGLWindow::initUniforms(void){
     // Update ViewMatrix
     // Send Matricies to shader
-    this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-    this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+    this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+    this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
-    this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
-    this->shaders[SHADER_CORE_PROGRAM]->set1i(this->textureShow, "showTexture");
-    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+    this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
+    this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
+    this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 }
 
 // Modifiers
 void OpenGLWindow::updateUniforms(void){
   this->updateLights();
-  this->lights[0]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
+  this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
 
   this->updateTextures();
   this->updateMaterials();
@@ -289,9 +279,9 @@ void OpenGLWindow::updateUniforms(void){
   // Update ViewMatrix
   this->camera.updateViewMatrix();
 
-  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-  this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
-  this->shaders[SHADER_CORE_PROGRAM]->set1i(this->textureShow, "showTexture");
+  this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+  this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+  this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
   // Update framebuffersize & ProjectionMatrix
   glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
@@ -324,7 +314,7 @@ void OpenGLWindow::updateUniforms(void){
     this->ProjectionMatrix *= h_alpha;
   }
 
-  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+  this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 }
 
 void OpenGLWindow::updateLights(void){
@@ -374,7 +364,7 @@ void OpenGLWindow::updateMaterials(void){
 }
 
 void OpenGLWindow::updateTextures(void){
-  // this->shader[SHADER_CORE_PROGRAM]
+  // this->shader[PHONG_SHADER]
   if(this->loadedNewTexture){
     // Update materials
     for(auto &i: this->models){

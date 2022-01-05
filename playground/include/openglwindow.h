@@ -31,7 +31,7 @@
 using namespace std;
 
 // ENUMERATIONS
-enum shader_enum    { SHADER_CORE_PROGRAM = 0 };
+enum shader_enum    { PHONG_SHADER = 0 };
 enum texture_enum   { TEX_CAT = 0, TEX_WOOD, TEX_LOADABLE };
 enum specular_enum  { TEX_CAT_SPECULAR, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };

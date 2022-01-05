@@ -50,13 +50,33 @@ vec3 calcSpecular(Material material, vec3 position, vec3 normal, Light light, ve
 
 void main() {
   // Ambient Lights
-  vec3 ambientFinal = calcAmbient(material);
+  // vec3 ambientFinal = calcAmbient(material);
 
   // Diffuse Lights
-  vec3 diffuseFinal = calcDiffuse(material, vs_position, vs_normal, light.position);
+  // vec3 diffuseFinal = calcDiffuse(material, vs_position, vs_normal, light.position);
+
+
+  vec3 N = normalize(vs_normal);
+  vec3 L = normalize(light.position - vs_position);
+
+  float lambertian = max(dot(N, L), 0.0);
+  float specular = 0.0;
+  if(lambertian > 0.0){
+    vec3 R = reflect(-L, N);              // Reflected light vector
+    vec3 V = normalize(-vs_position); // Vector to viewer
+    // Compute the specular term
+    float specAngle = max(dot(R, V), 0.0);
+    specular = pow(specAngle, material.alpha);
+  }
+
+  // fs_color = vec4(
+  //   material.ambient * light.ambient +
+  //   material.diffuse * lambertian +
+  //   material.specular * specular * light.color, 1.0
+  // );
 
   // Specular Light
-  vec3 specularFinal = calcSpecular(material, vs_position, vs_normal, light, cameraPos);
+  // vec3 specularFinal = calcSpecular(material, vs_position, vs_normal, light, cameraPos);
 
   // Attenuation
 
@@ -64,21 +84,18 @@ void main() {
   if (showTexture){
     fs_color =
       texture(material.diffuseTex, vs_texcoord) *
-      vec4(vs_color * light.color, 1.f) *
-      (
-        // Lights
-        vec4(ambientFinal, 1.f) +
-        vec4(diffuseFinal, 1.f) +
-        vec4(specularFinal, 1.f)
+      vec4(
+        material.ambient * light.ambient +
+        material.diffuse * lambertian +
+        material.specular * specular * light.color, 1.0
       );
   } else {
     fs_color =
       vec4(vs_color * light.color, 1.f) *
-      (
-        // Lights
-        vec4(ambientFinal, 1.f) +
-        vec4(diffuseFinal, 1.f) +
-        vec4(specularFinal, 1.f)
+      vec4(
+        material.ambient * light.ambient +
+        material.diffuse * lambertian +
+        material.specular * specular * light.color, 1.0
       );
   }
 
