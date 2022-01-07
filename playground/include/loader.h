@@ -39,7 +39,8 @@ static vector<Vertex> loadObject(string file_name){
 	glm::vec3 temp_vec3;
 	glm::vec2 temp_vec2;
 	GLint temp_glint = 0;
-	float vMax = 0.f;
+	float v_max = 0.f;
+	bool contains_normals = false;
 
 	//File open error check
 	if (!in_file.is_open()) {
@@ -63,14 +64,14 @@ static vector<Vertex> loadObject(string file_name){
 
 		} else if (prefix == "v") { // Vertex Name
 			ss >> temp_vec3.x >> temp_vec3.y >> temp_vec3.z;
-			if (abs(temp_vec3.x) > vMax)
-				vMax = abs(temp_vec3.x);
+			if (abs(temp_vec3.x) > v_max)
+				v_max = abs(temp_vec3.x);
 
-			if (abs(temp_vec3.y) > vMax)
-				vMax = abs(temp_vec3.y);
+			if (abs(temp_vec3.y) > v_max)
+				v_max = abs(temp_vec3.y);
 
-			if (abs(temp_vec3.z) > vMax)
-				vMax = abs(temp_vec3.z);
+			if (abs(temp_vec3.z) > v_max)
+				v_max = abs(temp_vec3.z);
 
 			vertex_positions.push_back(temp_vec3);
 
@@ -79,10 +80,90 @@ static vector<Vertex> loadObject(string file_name){
 			vertex_texcoords.push_back(temp_vec2);
 
 		} else if (prefix == "vn") { // Vertex Normal
+			contains_normals = true;
 			ss >> temp_vec3.x >> temp_vec3.y >> temp_vec3.z;
 			vertex_normals.push_back(temp_vec3);
 
 		} else if (prefix == "f") {
+			string vertex1, vertex2, vertex3;
+			GLint vertexIndex[3], texIndex[3], normalIndex[3];
+
+			// 1. f v1 v2 v3
+	    int matches = sscanf(line.c_str(), "f %d %d %d\n",
+				&vertexIndex[0], &vertexIndex[1], &vertexIndex[2]);
+
+			if (matches == 3){
+				// load the values
+				cout << "Format: f v1 v2 v3" << endl;
+
+				vertex_position_indicies.push_back(vertexIndex[0]);
+				vertex_position_indicies.push_back(vertexIndex[1]);
+				vertex_position_indicies.push_back(vertexIndex[2]);
+
+			} else {
+				// 2. f v1/vt1 v2/vt2 v3/vt3
+				matches = sscanf(line.c_str(), "f %d/%d %d/%d %d/%d\n",
+					&vertexIndex[0], &texIndex[0],
+					&vertexIndex[1], &texIndex[1],
+					&vertexIndex[2], &texIndex[2]);
+
+				if (matches == 6){
+					// load the values
+					cout << "Format: f v1/vt1 v2/vt2 v3/vt3" << endl;
+
+					vertex_position_indicies.push_back(vertexIndex[0]);
+					vertex_position_indicies.push_back(vertexIndex[1]);
+					vertex_position_indicies.push_back(vertexIndex[2]);
+					vertex_texcoord_indicies.push_back(texIndex[0]);
+					vertex_texcoord_indicies.push_back(texIndex[1]);
+					vertex_texcoord_indicies.push_back(texIndex[2]);
+				} else {
+					// 3. f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3
+					matches = sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
+						&vertexIndex[0], &texIndex[0], &normalIndex[0],
+						&vertexIndex[1], &texIndex[1], &normalIndex[1],
+						&vertexIndex[2], &texIndex[2], &normalIndex[2]);
+
+					if (matches == 9){
+						// load the values
+						cout << "Format: f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3" << endl;
+
+						vertex_position_indicies.push_back(vertexIndex[0]);
+						vertex_position_indicies.push_back(vertexIndex[1]);
+						vertex_position_indicies.push_back(vertexIndex[2]);
+						vertex_texcoord_indicies.push_back(texIndex[0]);
+						vertex_texcoord_indicies.push_back(texIndex[1]);
+						vertex_texcoord_indicies.push_back(texIndex[2]);
+						vertex_normal_indicies.push_back(normalIndex[0]);
+						vertex_normal_indicies.push_back(normalIndex[1]);
+						vertex_normal_indicies.push_back(normalIndex[2]);
+					} else {
+						// 4. f v1//vn1 v2//vn2 v3//vn3
+						matches = sscanf(line.c_str(), "f %d//%d %d//%d %d//%d\n",
+							&vertexIndex[0], &normalIndex[0],
+							&vertexIndex[1], &normalIndex[1],
+							&vertexIndex[2], &normalIndex[2]);
+
+						if (matches == 6){
+							// load the values
+							cout << "Format: f v1//vn1 v2//vn2 v3//vn3" << endl;
+
+							vertex_position_indicies.push_back(vertexIndex[0]);
+							vertex_position_indicies.push_back(vertexIndex[1]);
+							vertex_position_indicies.push_back(vertexIndex[2]);
+							vertex_normal_indicies.push_back(normalIndex[0]);
+							vertex_normal_indicies.push_back(normalIndex[1]);
+							vertex_normal_indicies.push_back(normalIndex[2]);
+						} else {
+							// Something went wrong! Can't read file
+							cout << "Error reading objectfile: " << file_name << endl;
+							exit(-1);
+						}
+					}
+				}
+			}
+
+			/*
 			int counter = 0;
 			while (ss >> temp_glint) {
 				//Pushing indices into correct arrays
@@ -106,7 +187,13 @@ static vector<Vertex> loadObject(string file_name){
 				if (counter > 2)
 					counter = 0;
 			}
+			*/
 		}
+	}
+
+	if(!contains_normals){
+		// Compute normals from vertices
+		cout << "OBJ-File does not contain any normals: " << file_name << endl;
 	}
 
 	//Build final vertex array (mesh)
@@ -114,9 +201,19 @@ static vector<Vertex> loadObject(string file_name){
 
 	//Load in all indices
 	for (size_t i = 0; i < vertices.size(); ++i) {
-		vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1] / (2.f * vMax);
-		vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
-		vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
+		if(vertex_positions.size() > 0){
+			vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1] / (2.f * v_max);
+		}
+
+		if(vertex_texcoords.size() > 0){
+			vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
+		}
+
+		if(vertex_normals.size() > 0){
+			vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
+		}
+
+		// Not added support for color reading.
 		vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
 	}
 
