@@ -43,24 +43,11 @@ OpenGLWindow::~OpenGLWindow(void){
     glfwDestroyWindow(this->window);
     glfwTerminate();
 
-    for (size_t i = 0; i < this->shaders.size(); i++){
-        delete this->shaders[i];
-    }
-
-    for (size_t i = 0; i < this->textures.size(); i++){
-        delete this->textures[i];
-    }
-
-    for (size_t i = 0; i < this->materials.size(); i++){
-        delete this->materials[i];
-    }
-
-    for (auto*& i: this->models)
-        delete i;
-
-    for (size_t i = 0; i < this->lights.size(); i++){
-        delete this->lights[i];
-    }
+    this->shaders.clear();
+    this->textures.clear();
+    this->materials.clear();
+    this->models.clear();
+    this->lights.clear();
 }
 
 void OpenGLWindow::initialize(void){
@@ -232,8 +219,7 @@ void OpenGLWindow::initModels(string fileName) {
     );
 
     if(this->models.size() > 0){
-        for (auto*& i: this->models)
-            delete i;
+      this->models.clear();
     }
 
     this->models.push_back(new Model(
@@ -243,8 +229,8 @@ void OpenGLWindow::initModels(string fileName) {
         meshes
     ));
 
-    for (auto*& i: meshes)
-        delete i;
+    meshes.clear();
+
 }
 
 void OpenGLWindow::initLights(void){
