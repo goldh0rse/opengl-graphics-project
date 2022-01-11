@@ -95,8 +95,6 @@ static vector<Vertex> loadObject(string file_name){
 				for (size_t i = 0; i < vertex_positions.size(); i++) {
 					vertex_normals.push_back(glm::vec3(0.0f));
 				}
-				cout << "Vertex Positions: " << vertex_positions.size() << endl;
-				cout << "Needed Vertex Normals: " << vertex_normals.size() << endl;
 			}
 
 
@@ -205,41 +203,25 @@ static vector<Vertex> loadObject(string file_name){
 		}
 	}
 
-	cout << "Read all vertex data" << endl;
-	cout << "Vertex normals: " << vertex_normals.size() << endl;
 	//Build final vertex array (mesh)
 	vertices.resize(vertex_position_indicies.size(), Vertex());
-	cout << vertices.size() << endl;
+
 	//Load in all indices
 	for (size_t i = 0; i < vertices.size(); ++i) {
-		// cout << i << endl;
 		vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1] / (2.f * v_max);
-		if (i == 0)
-			cout << "Created vertex position" << endl;
 
 		if(vertex_texcoords.size() > 0){
 			vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
-			if (i == 0)
-				cout << "Created vertex texcoord" << endl;
 		}
-
 
 		if(contains_normals){
 			vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
 		} else {
 			vertices[i].normal = normalize(vertex_normals[vertex_normal_indicies[i] - 1]);
-			if (i == 0)
-				cout << "Created Normal" << endl;
-			//cout << "Normal: " << vertices[i].normal.x << " " << vertices[i].normal.y << " " << vertices[i].normal.z << endl;
 		}
 		// Not added support for color reading.
 		vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
-		if (i == 0)
-			cout << "Created color" << endl;
 	}
-
-	//DEBUG
-	cout << "Nr of vertices: " << vertices.size() << endl;
 
 	//Loaded success
 	cout << "Loaded OBJ file:" << file_name << endl;
