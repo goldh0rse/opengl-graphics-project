@@ -20,26 +20,28 @@ using namespace std;
 
 static vector<Vertex> loadObject(string file_name){
     //Vertex portions
-	std::vector<glm::fvec3> vertex_positions;
-	std::vector<glm::fvec2> vertex_texcoords;
-	std::vector<glm::fvec3> vertex_normals;
+	vector<glm::fvec3> vertex_positions;
+	vector<glm::fvec2> vertex_texcoords;
+	vector<glm::fvec3> vertex_normals;
 
 	//Face vectors
-	std::vector<GLint> vertex_position_indicies;
-	std::vector<GLint> vertex_texcoord_indicies;
-	std::vector<GLint> vertex_normal_indicies;
+	vector<GLint> vertex_position_indicies;
+	vector<GLint> vertex_texcoord_indicies;
+	vector<GLint> vertex_normal_indicies;
 
 	//Vertex array
-	std::vector<Vertex> vertices;
+	vector<Vertex> vertices;
 
-	std::stringstream ss;
-	std::ifstream in_file(file_name);
-	std::string line = "";
-	std::string prefix = "";
+	stringstream ss;
+	ifstream in_file(file_name);
+	string line = "";
+	string prefix = "";
 	glm::vec3 temp_vec3;
 	glm::vec2 temp_vec2;
-	GLint temp_glint = 0;
-	float vMax = 0.f;
+	// GLint temp_glint = 0;
+	float v_max = 0.f;
+	bool contains_normals = false;
+	bool first_pass = true;
 
 	//File open error check
 	if (!in_file.is_open()) {
@@ -47,30 +49,32 @@ static vector<Vertex> loadObject(string file_name){
 	}
 
 	//Read one line at a time
-	while (std::getline(in_file, line)){
+	while (getline(in_file, line)){
 		//Get the prefix of the line
 		ss.clear();
 		ss.str(line);
 		ss >> prefix;
 
-		if (prefix == "#"){
+
+
+		if (prefix == "#" || line.empty()){
 			continue;
 		} else if (prefix == "o"){
-
+			continue;
 		} else if (prefix == "s") {
-
+			continue;
 		} else if (prefix == "use_mtl") {
-
+			continue;
 		} else if (prefix == "v") { // Vertex Name
 			ss >> temp_vec3.x >> temp_vec3.y >> temp_vec3.z;
-			if (std::abs(temp_vec3.x) > vMax)
-				vMax = std::abs(temp_vec3.x);
+			if (abs(temp_vec3.x) > v_max)
+				v_max = abs(temp_vec3.x);
 
-			if (std::abs(temp_vec3.y) > vMax)
-				vMax = std::abs(temp_vec3.y);
+			if (abs(temp_vec3.y) > v_max)
+				v_max = abs(temp_vec3.y);
 
-			if (std::abs(temp_vec3.z) > vMax)
-				vMax = std::abs(temp_vec3.z);
+			if (abs(temp_vec3.z) > v_max)
+				v_max = abs(temp_vec3.z);
 
 			vertex_positions.push_back(temp_vec3);
 
@@ -79,33 +83,126 @@ static vector<Vertex> loadObject(string file_name){
 			vertex_texcoords.push_back(temp_vec2);
 
 		} else if (prefix == "vn") { // Vertex Normal
+			contains_normals = true;
 			ss >> temp_vec3.x >> temp_vec3.y >> temp_vec3.z;
 			vertex_normals.push_back(temp_vec3);
 
 		} else if (prefix == "f") {
-			int counter = 0;
-			while (ss >> temp_glint) {
-				//Pushing indices into correct arrays
-				if (counter == 0)
-					vertex_position_indicies.push_back(temp_glint);
-				else if (counter == 1)
-					vertex_texcoord_indicies.push_back(temp_glint);
-				else if (counter == 2)
-					vertex_normal_indicies.push_back(temp_glint);
+			// string vertex1, vertex2, vertex3;
+			GLint vertexIndex[3], texIndex[3], normalIndex[3];
 
-				//Handling characters
-				if (ss.peek() == '/') {
-					++counter;
-					ss.ignore(1, '/');
-				} else if (ss.peek() == ' ') {
-					++counter;
-					ss.ignore(1, ' ');
+			if (vertex_normals.size() != vertex_positions.size() && first_pass){
+				cout << "No normals in file, computing own normals" << endl;
+				// allocate memory for uncomputed vertex_normals
+				for (size_t i = 0; i < vertex_positions.size(); i++) {
+					vertex_normals.push_back(glm::vec3(0.0f));
 				}
-
-				//Reset the counter
-				if (counter > 2)
-					counter = 0;
 			}
+
+
+			// 1. f v1 v2 v3
+	    int matches = sscanf(line.c_str(), "f %d %d %d\n",
+				&vertexIndex[0], &vertexIndex[1], &vertexIndex[2]);
+
+			if (matches == 3){
+				// load the values
+				vertex_position_indicies.push_back(vertexIndex[0]);
+				vertex_position_indicies.push_back(vertexIndex[1]);
+				vertex_position_indicies.push_back(vertexIndex[2]);
+
+				// I have to compute vertex normals here, atleast i think here.
+				glm::vec3 a = vertex_positions[vertexIndex[1] - 1] - vertex_positions[vertexIndex[0] - 1];
+				glm::vec3 b = vertex_positions[vertexIndex[2] - 1] - vertex_positions[vertexIndex[0] - 1];
+				glm::vec3 face_normal = cross(a, b);
+
+				vertex_normals[vertexIndex[0] - 1] += face_normal;
+				vertex_normals[vertexIndex[1] - 1] += face_normal;
+				vertex_normals[vertexIndex[2] - 1] += face_normal;
+				vertex_normal_indicies.push_back(vertexIndex[0]);
+				vertex_normal_indicies.push_back(vertexIndex[1]);
+				vertex_normal_indicies.push_back(vertexIndex[2]);
+
+			} else {
+				// 2. f v1/vt1 v2/vt2 v3/vt3
+				matches = sscanf(line.c_str(), "f %d/%d %d/%d %d/%d\n",
+					&vertexIndex[0], &texIndex[0],
+					&vertexIndex[1], &texIndex[1],
+					&vertexIndex[2], &texIndex[2]);
+
+				if (matches == 6){
+					// load the values
+					if(first_pass)
+						cout << "Format: f v1/vt1 v2/vt2 v3/vt3" << endl;
+
+					vertex_position_indicies.push_back(vertexIndex[0]);
+					vertex_position_indicies.push_back(vertexIndex[1]);
+					vertex_position_indicies.push_back(vertexIndex[2]);
+					vertex_texcoord_indicies.push_back(texIndex[0]);
+					vertex_texcoord_indicies.push_back(texIndex[1]);
+					vertex_texcoord_indicies.push_back(texIndex[2]);
+
+
+					// I have to compute vertex normals here, atleast i think here.
+					glm::vec3 a = vertex_positions[vertexIndex[1] - 1] - vertex_positions[vertexIndex[0] - 1];
+					glm::vec3 b = vertex_positions[vertexIndex[2] - 1] - vertex_positions[vertexIndex[0] - 1];
+					glm::vec3 face_normal = cross(a, b);
+					vertex_normals[vertexIndex[0] - 1] += face_normal;
+					vertex_normals[vertexIndex[1] - 1] += face_normal;
+					vertex_normals[vertexIndex[2] - 1] += face_normal;
+					vertex_normal_indicies.push_back(vertexIndex[0]);
+					vertex_normal_indicies.push_back(vertexIndex[1]);
+					vertex_normal_indicies.push_back(vertexIndex[2]);
+
+				} else {
+					// 3. f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3
+					matches = sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
+						&vertexIndex[0], &texIndex[0], &normalIndex[0],
+						&vertexIndex[1], &texIndex[1], &normalIndex[1],
+						&vertexIndex[2], &texIndex[2], &normalIndex[2]);
+
+					if (matches == 9){
+						// load the values
+						if(first_pass)
+							cout << "Format: f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3" << endl;
+
+						vertex_position_indicies.push_back(vertexIndex[0]);
+						vertex_position_indicies.push_back(vertexIndex[1]);
+						vertex_position_indicies.push_back(vertexIndex[2]);
+						vertex_texcoord_indicies.push_back(texIndex[0]);
+						vertex_texcoord_indicies.push_back(texIndex[1]);
+						vertex_texcoord_indicies.push_back(texIndex[2]);
+						vertex_normal_indicies.push_back(normalIndex[0]);
+						vertex_normal_indicies.push_back(normalIndex[1]);
+						vertex_normal_indicies.push_back(normalIndex[2]);
+					} else {
+						// 4. f v1//vn1 v2//vn2 v3//vn3
+						matches = sscanf(line.c_str(), "f %d//%d %d//%d %d//%d\n",
+							&vertexIndex[0], &normalIndex[0],
+							&vertexIndex[1], &normalIndex[1],
+							&vertexIndex[2], &normalIndex[2]);
+
+						if (matches == 6){
+							// load the values
+							if(first_pass)
+								cout << "Format: f v1//vn1 v2//vn2 v3//vn3" << endl;
+
+							vertex_position_indicies.push_back(vertexIndex[0]);
+							vertex_position_indicies.push_back(vertexIndex[1]);
+							vertex_position_indicies.push_back(vertexIndex[2]);
+							vertex_normal_indicies.push_back(normalIndex[0]);
+							vertex_normal_indicies.push_back(normalIndex[1]);
+							vertex_normal_indicies.push_back(normalIndex[2]);
+						} else {
+							// Something went wrong! Can't read file
+							cout << "Error reading objectfile: " << file_name << endl;
+							cout << line << endl;
+							exit(-1);
+						}
+					}
+				}
+			}
+			first_pass = false;
+
 		}
 	}
 
@@ -114,14 +211,20 @@ static vector<Vertex> loadObject(string file_name){
 
 	//Load in all indices
 	for (size_t i = 0; i < vertices.size(); ++i) {
-		vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1] / (2.f * vMax);
-		vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
-		vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
+		vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1] / (2.f * v_max);
+
+		if(vertex_texcoords.size() > 0){
+			vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
+		}
+
+		if(contains_normals){
+			vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
+		} else {
+			vertices[i].normal = normalize(vertex_normals[vertex_normal_indicies[i] - 1]);
+		}
+		// Not added support for color reading.
 		vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
 	}
-
-	//DEBUG
-	cout << "Nr of vertices: " << vertices.size() << endl;
 
 	//Loaded success
 	cout << "Loaded OBJ file:" << file_name << endl;

@@ -62,15 +62,16 @@ clean:
 build:
 	rm -f $(OBJS) $(TARGET)
 	make
+	make -t
 
 .SUFFIXES: .o .c .cpp .cxx .cc
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -MMD -MP -o "$@" "$<"
 .cxx.o:
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -MMD -MP -o "$@" "$<"
 .cc.o:
-	$(CXX) -c $(CXXFLAGS) $<
+	$(CXX) -c $(CXXFLAGS) -MMD -MP $<
 .c.o:
-	$(CXX) -c $(CXXFLAGS) $<
+	$(CXX) -c $(CXXFLAGS) -MMD -MP $<
 $(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)

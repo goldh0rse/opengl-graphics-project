@@ -20,8 +20,7 @@ Model::Model(
 }
 
 Model::~Model(){
-    for(auto*& i : this->meshes)
-        delete i;
+    this->meshes.clear();
 }
 
 // Public Functions
