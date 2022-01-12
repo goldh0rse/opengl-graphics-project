@@ -387,19 +387,15 @@ void OpenGLWindow::DrawGui(void){
   ImGui::Begin("3D Studio");
 
   if (ImGui::CollapsingHeader("OBJ File")) {
-      ImGui::Text("OBJ file: %s", this->objFileName.c_str());
+      // ImGui::Text("OBJ file: %s", this->objFileName.c_str());
       if (ImGui::Button("Open File"))
           igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
 
       if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
           if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
-              this->objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
-              this->objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
-
               this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
 
-              // cout << "Full FilePathName: " << this->objFullPath << endl;
-              cout << "OBJ file: " << this->objFileName << endl << "Path: " << this->objFilePath << endl;
+              cout << "OBJ file: " << this->objFullPath << endl;
 
               this->initModels(this->objFullPath);
           }
@@ -445,8 +441,6 @@ void OpenGLWindow::DrawGui(void){
 
       if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
           if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
-              //textureFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
-              //textureFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
               this->textureFilePath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
               cout << "Texture file: " << this->textureFilePath << endl;
               if(this->textures.size() > 2){

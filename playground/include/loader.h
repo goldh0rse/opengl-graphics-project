@@ -55,7 +55,9 @@ static vector<Vertex> loadObject(string file_name){
 		ss.str(line);
 		ss >> prefix;
 
-		if (prefix == "#"){
+
+
+		if (prefix == "#" || line.empty()){
 			continue;
 		} else if (prefix == "o"){
 			continue;
@@ -193,6 +195,7 @@ static vector<Vertex> loadObject(string file_name){
 						} else {
 							// Something went wrong! Can't read file
 							cout << "Error reading objectfile: " << file_name << endl;
+							cout << line << endl;
 							exit(-1);
 						}
 					}
