@@ -3,11 +3,12 @@
 
 Texture::Texture(const char* fileName, GLenum type){
   this->type = type;
-  unsigned char* img = SOIL_load_image(
-    fileName,
-    &this->width, &this->height,
-    0, SOIL_LOAD_RGBA
-  );
+  // unsigned char* img = SOIL_load_image(
+  //   fileName,
+  //   &this->width, &this->height,
+  //   0, SOIL_LOAD_RGBA
+  // );
+
 
   glGenTextures(1, &this->id);
   glBindTexture(type, this->id);
@@ -16,6 +17,14 @@ Texture::Texture(const char* fileName, GLenum type){
   glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);   // Magnification
   glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // Minification
+
+
+  unsigned char *img = stbi_load(
+    fileName,
+    &this->width, &this->height, &this->nrChannels,
+    0
+  );
+
 
   if(img){
     glTexImage2D(
@@ -26,12 +35,13 @@ Texture::Texture(const char* fileName, GLenum type){
     glGenerateMipmap(type);
   } else {
     cout << "Image texture loading failed: " << fileName << endl;
-    cout << SOIL_last_result() << endl;
+    //cout << SOIL_last_result() << endl;
   }
 
   glActiveTexture(0);
   glBindTexture(type, 0); // UNDBIND GL_TEXTURE_2D
-  SOIL_free_image_data(img);
+  //SOIL_free_image_data(img);
+  stbi_image_free(img);
 }
 
 void Texture::bind(const GLint textureUnit){
