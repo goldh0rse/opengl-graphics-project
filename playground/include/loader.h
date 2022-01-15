@@ -18,6 +18,8 @@
 
 using namespace std;
 
+const float radius = sqrt(2);
+
 static vector<Vertex> loadObject(string file_name){
     //Vertex portions
 	vector<glm::fvec3> vertex_positions;
@@ -41,6 +43,7 @@ static vector<Vertex> loadObject(string file_name){
 	// GLint temp_glint = 0;
 	float v_max = 0.f;
 	bool contains_normals = false;
+	bool contains_texcoords = false;
 	bool first_pass = true;
 
 	//File open error check
@@ -81,6 +84,7 @@ static vector<Vertex> loadObject(string file_name){
 		} else if (prefix == "vt") { // Vertex Texcoord
 			ss >> temp_vec2.x >> temp_vec2.y;
 			vertex_texcoords.push_back(temp_vec2);
+			contains_texcoords = true;
 
 		} else if (prefix == "vn") { // Vertex Normal
 			contains_normals = true;
@@ -206,6 +210,9 @@ static vector<Vertex> loadObject(string file_name){
 		}
 	}
 
+	if(!contains_texcoords)
+		cout << "No texcoords in file: will generate new ones from spherical 2 part mapping" << endl;
+
 	//Build final vertex array (mesh)
 	vertices.resize(vertex_position_indicies.size(), Vertex());
 
@@ -213,15 +220,40 @@ static vector<Vertex> loadObject(string file_name){
 	for (size_t i = 0; i < vertices.size(); ++i) {
 		vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1] / (2.f * v_max);
 
-		if(vertex_texcoords.size() > 0){
-			vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
-		}
-
 		if(contains_normals){
 			vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
 		} else {
 			vertices[i].normal = normalize(vertex_normals[vertex_normal_indicies[i] - 1]);
 		}
+
+		if (contains_texcoords){
+			vertices[i].texcoord = normalize(vertex_texcoords[vertex_texcoord_indicies[i] - 1]);
+		} else {
+			// Compute new texcoords with spherical two-part mapping
+			float a, b, c, delta;
+			a = dot(vertices[i].normal, vertices[i].normal);
+			b = 2*(dot(vertices[i].position, vertices[i].normal));
+			c = dot(vertices[i].position, vertices[i].position) - (radius * radius);
+			delta = pow(b, 2) - 4*a*c;
+
+			float q = -0.5f * (b + ((b > 0) - (b < 0))*sqrt(delta));
+			float d1 = q / a;
+			float d2 = c / q;
+			float d;
+			if(d1 > d2){
+				// d1 == d+
+				d = d1;
+			} else {
+				// d2 == d+
+				d = d2;
+			}
+
+			glm::vec3 p = vertices[i].position + d*vertices[i].normal;
+			p = normalize(p);
+			vertices[i].texcoord.s = acos(p.x / radius);
+			vertices[i].texcoord.t = atan(p.z / p.y);
+		}
+
 		// Not added support for color reading.
 		vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
 	}

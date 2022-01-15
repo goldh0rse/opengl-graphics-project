@@ -58,20 +58,20 @@ LDFLAGS  = $(ELDFLAGS) $(LGLFLAGS) $(OSLDFLAGS)
 
 all: $(TARGET)
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) $(SRC)/*.d
 build:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) $(SRC)/*.d
 	make
 	make -t
 
 .SUFFIXES: .o .c .cpp .cxx .cc
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -MMD -MP -o "$@" "$<"
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
 .cxx.o:
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -MMD -MP -o "$@" "$<"
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
 .cc.o:
-	$(CXX) -c $(CXXFLAGS) -MMD -MP $<
+	$(CXX) -c $(CXXFLAGS) $<
 .c.o:
-	$(CXX) -c $(CXXFLAGS) -MMD -MP $<
+	$(CXX) -c $(CXXFLAGS) $<
 $(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)

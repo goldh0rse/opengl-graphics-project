@@ -25,18 +25,17 @@
 #include "mymodel.h"
 #include "loader.h"
 #include "camera.h"
+#include "light.h"
 
 
 using namespace std;
 
 // ENUMERATIONS
-// enum direction_enum { FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN };
-enum shader_enum    { SHADER_CORE_PROGRAM = 0 };
-enum texture_enum   { TEX_CAT = 0, TEX_CAT_SPECULAR, TEX_WOOD, TEX_WOOD_SPECULAR };
+enum shader_enum    { PHONG_SHADER = 0 };
+enum texture_enum   { TEX_CAT = 0, TEX_WOOD, TEX_LOADABLE };
+enum specular_enum  { TEX_CAT_SPECULAR, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
 enum mesh_enum      { MESH_QUAD = 0 };
-
-// const float pi_f = 3.1415926f;
 
 class OpenGLWindow {
 public:
@@ -73,48 +72,50 @@ private:
 	const int GL_VERSION_MAJOR;
   const int GL_VERSION_MINOR;
 
-  // MATRICES
+  // Camera
   Camera camera;
-  // glm::mat4 ViewMatrix;
-  // const glm::vec3 startPos;
-  // const glm::vec3 startWorldUp;
-  // const glm::vec3 startFacing;
-  //
-	// glm::vec3 camPosition;
-	// glm::vec3 worldUp;
-  // glm::vec3 camUp;
-	// glm::vec3 camFront;
-  // glm::vec3 camRight;
-  // float dt;
-  // GLfloat pitch;
-  // GLfloat yaw;
-  // GLfloat sensitivity;
-  // GLfloat movementSpeed;
 
+  // Lights
+  float lightPos[3] = {0.0f, 0.0f, 0.0f};
+  float lightColor[3] = {1.0f, 1.0f, 1.0f};
+  float ambientColor[3] = {0.2f, 0.2f, 0.2f};
 
+  float materialAmbient[3] = {.5f, .5f, .5f};
+  float materialDiffuse[3] = {.5f, .5f, .5f};
+  float materialSpecular[3] = {.5f, .5f, .5f};
+  float materialShininess = 1.0f;
+
+  // Projection
 	glm::mat4 ProjectionMatrix;
-  bool projectType;
-	float fov;
-	float nearPlane;
-	float farPlane;
-  float top;
+  bool projectType = true;
+	float fov = 90.f;
+	float nearPlane = 0.1f;
+	float farPlane = 1000.f;
+  float top = 1.f;
   float bottom;
   float left;
   float right;
-  float obliqueScale;
-  float obliqueAngleRad;
+  float obliqueScale = 0.f;
+  float obliqueAngleRad = pi_f/4.f;
 
   // Cursors stuff
   double cursorScreenX;
   double cursorScreenY;
   double offsetX;
   double offsetY;
-  bool showGui;
+  bool showGui = true;
 
   // Object file-stuff
   string objFileName;
   string objFilePath;
   string objFullPath;
+
+  // Texture File Stuff
+  string textureFileName;
+  string textureFilePath;
+  bool textureShow = false;
+  bool loadedNewTexture = false;
+
 
   // Shaders
   vector<Shader*> shaders;
@@ -129,7 +130,7 @@ private:
   vector<Model*> models;
 
   // Lights
-  vector<glm::vec3*> lights;
+  vector<Light*> lights;
 
   // Private functions
   void initGLFW(void);
@@ -145,6 +146,10 @@ private:
   void initUniforms(void);
 
   void updateUniforms(void);
+  void updateLights(void);
+  void updateMaterials(void);
+  void updateTextures(void);
+
   void DrawGui(void);
   void initImGui(void);
 };

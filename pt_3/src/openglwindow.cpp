@@ -27,16 +27,6 @@ OpenGLWindow::OpenGLWindow(
     this->framebufferWidth = this->WINDOW_WIDTH;
     this->framebufferHeight = this->WINDOW_HEIGHT;
 
-    this->projectType = true;
-    this->fov = 90.f;
-    this->nearPlane = 0.1f; // Due to where we want clipping to be
-    this->farPlane = 1000.f; // Test on itchy, if slow dump to 100.f
-    this->top = 1.0f;
-    this->obliqueScale = 0.0f;
-    this->obliqueAngleRad = pi_f/4.0f;
-
-    this->showGui = true;
-
     this->initGLFW();
     this->initWindow(title, resizable);
     this->initGLEW();
@@ -53,24 +43,11 @@ OpenGLWindow::~OpenGLWindow(void){
     glfwDestroyWindow(this->window);
     glfwTerminate();
 
-    for (size_t i = 0; i < this->shaders.size(); i++){
-        delete this->shaders[i];
-    }
-
-    for (size_t i = 0; i < this->textures.size(); i++){
-        delete this->textures[i];
-    }
-
-    for (size_t i = 0; i < this->materials.size(); i++){
-        delete this->materials[i];
-    }
-
-    for (auto*& i: this->models)
-        delete i;
-
-    for (size_t i = 0; i < this->lights.size(); i++){
-        delete this->lights[i];
-    }
+    this->shaders.clear();
+    this->textures.clear();
+    this->materials.clear();
+    this->models.clear();
+    this->lights.clear();
 }
 
 void OpenGLWindow::initialize(void){
@@ -93,7 +70,7 @@ void OpenGLWindow::render(void){
     this->updateUniforms();
 
     for (auto&i : this->models)
-		  i->render(this->shaders[SHADER_CORE_PROGRAM]);
+		  i->render(this->shaders[PHONG_SHADER]);
 
 
     ImGui::Render();
@@ -104,7 +81,7 @@ void OpenGLWindow::render(void){
     glFlush();
 
     glBindVertexArray(0);
-    this->shaders[SHADER_CORE_PROGRAM]->unuse();
+    this->shaders[PHONG_SHADER]->unuse();
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -132,7 +109,7 @@ void OpenGLWindow::start(void){
 
 /*                           PRIVATE                                          */
 /******************************************************************************/
-// Private functions
+// Initializers
 void OpenGLWindow::initGLFW(void){
     // Initialize glfw
     if (!glfwInit()){
@@ -193,16 +170,6 @@ void OpenGLWindow::initOpenGLOptions(void){
 }
 
 void OpenGLWindow::initMatrices(void){
-    // this->camera = new Camera(this->camPosition, this->worldUp, this->camFront);
-
-    // ViewMatrix
-    // this->ViewMatrix = glm::mat4(1.f);
-    // this->ViewMatrix = glm::lookAt(
-    //     this->camPosition,
-    //     this->camPosition + this->camFront,
-    //     this->worldUp
-    // );
-
     // ProjectionMatrix
     this->ProjectionMatrix = glm::mat4(1.f);
     this->ProjectionMatrix = glm::perspective(
@@ -219,20 +186,17 @@ void OpenGLWindow::initShaders(void){
 
 void OpenGLWindow::initTextures(void){
     this->textures.push_back(new Texture("resources/images/pusheen.png", GL_TEXTURE_2D));
-    this->textures.push_back(new Texture("resources/images/pusheen_specular.png", GL_TEXTURE_2D));
-
     this->textures.push_back(new Texture("resources/images/wood.png", GL_TEXTURE_2D));
-    this->textures.push_back(new Texture("resources/images/wood_specular.png", GL_TEXTURE_2D));
 }
 
 void OpenGLWindow::initMaterials(void){
     this->materials.push_back(
         new Material(
-            glm::vec3(0.5f),
-            glm::vec3(1.f),
-            glm::vec3(1.f),
-            0,
-            1
+            glm::vec3(0.5f),  // Ambient
+            glm::vec3(1.f),   // Diffuse
+            glm::vec3(1.f),   // Specular
+            1.0f,             // Alpha
+            0                 // Texture
         )
     );
 }
@@ -244,7 +208,7 @@ void OpenGLWindow::initModels(string fileName) {
 
     meshes.push_back(
         new Mesh(
-            this->shaders[SHADER_CORE_PROGRAM],
+            this->shaders[PHONG_SHADER],
             mesh.data(), mesh.size(),
             NULL, 0,
             glm::vec3(1.f, 0.f, 0.f),
@@ -255,49 +219,55 @@ void OpenGLWindow::initModels(string fileName) {
     );
 
     if(this->models.size() > 0){
-        for (auto*& i: this->models)
-            delete i;
+      this->models.clear();
     }
 
     this->models.push_back(new Model(
         glm::vec3(0.f),
         this->materials[MAT_1],
         this->textures[TEX_WOOD],
-        this->textures[TEX_WOOD_SPECULAR],
         meshes
     ));
 
-    for (auto*& i: meshes)
-        delete i;
+    meshes.clear();
+
 }
 
 void OpenGLWindow::initLights(void){
     this->lights.push_back(
-        new glm::vec3(0.f, 0.f, 1.f)
+        new Light(
+          glm::vec3(0.f, 0.f, 1.f),      // Light position
+          glm::vec3(1.f, 1.f, 1.f),  // Light Color
+          glm::vec3(0.5f, 0.5f, 0.5f)
+        )
     );
 }
 
 void OpenGLWindow::initUniforms(void){
     // Update ViewMatrix
     // Send Matricies to shader
-    this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-    this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+    this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+    this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
-    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
-    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+    this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
+    this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
+    this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 }
 
+// Modifiers
 void OpenGLWindow::updateUniforms(void){
+  this->updateLights();
+  this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
+
+  this->updateTextures();
+  this->updateMaterials();
+
   // Update ViewMatrix
   this->camera.updateViewMatrix();
 
-  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-  this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getCamPosition(), "cameraPos");
-
-  // Update Uniforms
-  this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
-  this->shaders[SHADER_CORE_PROGRAM]->set1i(1, "texture1");
-
+  this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+  this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+  this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
   // Update framebuffersize & ProjectionMatrix
   glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
@@ -330,7 +300,64 @@ void OpenGLWindow::updateUniforms(void){
     this->ProjectionMatrix *= h_alpha;
   }
 
-  this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+  this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+}
+
+void OpenGLWindow::updateLights(void){
+  for (auto &i: this->lights){
+    // change light values
+    i->updatePosition(
+      this->lightPos[0],
+      this->lightPos[1],
+      this->lightPos[2]
+    );
+
+    i->updateColor(
+      this->lightColor[0],
+      this->lightColor[1],
+      this->lightColor[2]
+    );
+
+    i->updateAmbient(
+      this->ambientColor[0],
+      this->ambientColor[1],
+      this->ambientColor[2]
+    );
+  }
+}
+
+void OpenGLWindow::updateMaterials(void){
+  for(auto &i: this->materials){
+    i->updateAmbient(
+      this->materialAmbient[0],
+      this->materialAmbient[1],
+      this->materialAmbient[2]
+    );
+
+    i->updateDiffuse(
+      this->materialDiffuse[0],
+      this->materialDiffuse[1],
+      this->materialDiffuse[2]
+    );
+
+    i->updateSpecular(
+      this->materialSpecular[0],
+      this->materialSpecular[1],
+      this->materialSpecular[2]
+    );
+    i->updateAlpha(this->materialShininess);
+  }
+}
+
+void OpenGLWindow::updateTextures(void){
+  // this->shader[PHONG_SHADER]
+  if(this->loadedNewTexture){
+    // Update materials
+    for(auto &i: this->models){
+      i->updateDiffuseTex(this->textures[TEX_LOADABLE]);
+    }
+    this->loadedNewTexture = false;
+  }
 }
 
 // ImGui functions
@@ -351,33 +378,87 @@ void OpenGLWindow::initImGui(void){
 }
 
 void OpenGLWindow::DrawGui(void){
-    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
-    static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
+  IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
 
-    ImGui::Begin("3D Studio");
 
-    if (ImGui::CollapsingHeader("OBJ File")) {
-        ImGui::Text("OBJ file: %s", this->objFileName.c_str());
-        if (ImGui::Button("Open File"))
-            igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
+  static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
 
-        if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
-            if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
-                this->objFileName = igfd::ImGuiFileDialog::Instance()->GetCurrentFileName();
-                this->objFilePath = igfd::ImGuiFileDialog::Instance()->GetCurrentPath();
+  ImGui::Begin("3D Studio");
 
-                this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+  if (ImGui::CollapsingHeader("OBJ File")) {
+      // ImGui::Text("OBJ file: %s", this->objFileName.c_str());
+      if (ImGui::Button("Open File"))
+          igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", ".");
 
-                // cout << "Full FilePathName: " << this->objFullPath << endl;
-                cout << "OBJ file: " << this->objFileName << endl << "Path: " << this->objFilePath << endl;
+      if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
+          if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
+              this->objFullPath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
 
-                this->initModels(this->objFullPath);
-            }
-            // close
-            igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
-        }
-    }
+              cout << "OBJ file: " << this->objFullPath << endl;
+
+              this->initModels(this->objFullPath);
+          }
+          // close
+          igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+      }
+  }
+
+  if (ImGui::CollapsingHeader("Light")) {
+      ImGui::Text("Light source position");
+      ImGui::PushItemWidth(100);
+      ImGui::InputFloat("x", &this->lightPos[0], 0.5f, 1.0f, "%1.1f"); ImGui::SameLine();
+      ImGui::InputFloat("y", &this->lightPos[1], 0.5f, 1.0f, "%1.1f"); ImGui::SameLine();
+      ImGui::InputFloat("z", &this->lightPos[2], 0.5f, 1.0f, "%1.1f");
+      ImGui::PopItemWidth();
+
+      ImGui::Text("Light source intensity:");
+      ImGui::ColorEdit3("Light", this->lightColor);
+
+      ImGui::Text("Ambient light intensity:");
+      ImGui::ColorEdit3("Ambient", this->ambientColor);
+  }
+
+  if (ImGui::CollapsingHeader("Object Material")) {
+      ImGui::Text("Ambient coefficient:");
+      ImGui::ColorEdit3("Ambient color", this->materialAmbient);
+
+      ImGui::Text("Diffuse coefficient:");
+      ImGui::ColorEdit3("Diffuse color", this->materialDiffuse);
+
+      ImGui::Text("Specular coefficient:");
+      ImGui::ColorEdit3("Specular color", this->materialSpecular);
+
+      ImGui::SliderFloat("Shininess", &this->materialShininess, 1.0f, 1000.0f, "%1.0f", flags);
+  }
+
+  if (ImGui::CollapsingHeader("Object Texture")) {
+      ImGui::Checkbox("Show texture", &this->textureShow);
+      ImGui::Text("Texture file: %s", textureFileName.c_str());
+      if (ImGui::Button("Open Texture File"))
+          igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Select Texture File",
+                                                        ".bmp,.dds,.hdr,.pic,.png,.psd,.jpg,.tga", ".");
+
+      if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) {
+          if (igfd::ImGuiFileDialog::Instance()->IsOk == true) {
+              this->textureFilePath = igfd::ImGuiFileDialog::Instance()->GetFilePathName();
+              cout << "Texture file: " << this->textureFilePath << endl;
+              if(this->textures.size() > 2){
+                this->textures.pop_back();
+              }
+              this->textures.push_back(
+                new Texture(this->textureFilePath.c_str(), GL_TEXTURE_2D)
+              );
+              this->loadedNewTexture = true;
+
+          } else {
+              // Return a message to the user if the file could not be opened
+              this->loadedNewTexture = false;
+          }
+          // close
+          igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
+      }
+  }
 
     if (ImGui::CollapsingHeader("Projection")) {
         // THIS IS WHERE I NEED TO CHANGE THE PROJECTION

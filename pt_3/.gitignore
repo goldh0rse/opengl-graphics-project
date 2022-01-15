@@ -1,0 +1,32 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+#*.obj # Can't use this, need .obj for object loader
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+# *.a # libsoil2.a would dissapear
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app

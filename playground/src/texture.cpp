@@ -14,8 +14,8 @@ Texture::Texture(const char* fileName, GLenum type){
 
   glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);   // Magnification
-  glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);                 // Minification
+  glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);   // Magnification
+  glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // Minification
 
   if(img){
     glTexImage2D(
@@ -34,14 +34,12 @@ Texture::Texture(const char* fileName, GLenum type){
   SOIL_free_image_data(img);
 }
 
-void
-Texture::bind(const GLint textureUnit){
+void Texture::bind(const GLint textureUnit){
   glActiveTexture(GL_TEXTURE0 + textureUnit);
   glBindTexture(this->type, this->id);
 }
 
-void
-Texture::unbind(void){
+void Texture::unbind(void){
   glActiveTexture(0);
   glBindTexture(this->type, 0);
 }

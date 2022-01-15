@@ -8,7 +8,7 @@
 #
 SRC = ./src
 INCLUDES = ./include
-TARGET =  3DStudio.out
+TARGET =  3DStudio.app
 IMGUI_DIR = $(SRC)/ImGui
 
 OBJS = 	\
@@ -21,6 +21,7 @@ OBJS = 	\
 	$(SRC)/primitive.o \
 	$(SRC)/mymodel.o \
 	$(SRC)/camera.o \
+	$(SRC)/light.o \
 	$(IMGUI_DIR)/imgui.o \
 	$(IMGUI_DIR)/imgui_demo.o \
 	$(IMGUI_DIR)/imgui_draw.o \
@@ -57,10 +58,11 @@ LDFLAGS  = $(ELDFLAGS) $(LGLFLAGS) $(OSLDFLAGS)
 
 all: $(TARGET)
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) $(SRC)/*.d
 build:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) $(SRC)/*.d
 	make
+	make -t
 
 .SUFFIXES: .o .c .cpp .cxx .cc
 .cpp.o:

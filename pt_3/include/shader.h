@@ -33,6 +33,7 @@ public:
   void setMat3fv(glm::mat3 value, const GLchar* name, GLboolean transpose=GL_FALSE);
   void setMat4fv(glm::mat4 value, const GLchar* name, GLboolean transpose=GL_FALSE);
   void set1i(GLint value, const GLchar* name);
+  void set1f(GLfloat value, const GLchar* name);
 
 private:
   GLuint id;

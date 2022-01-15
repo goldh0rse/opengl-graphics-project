@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 
-// For objectloading
 struct Vertex {
   glm::vec3 position;
   glm::vec3 color;

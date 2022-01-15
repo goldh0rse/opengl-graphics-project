@@ -27,7 +27,7 @@ Mesh::Mesh(
     for (size_t i = 0; i < this->nrOfIndices; i++){
       this->indices[i] = indices[i];
     }
-    
+
 
     this->initVAO();
     this->updateModelMatrix();
@@ -80,7 +80,7 @@ Mesh::Mesh(const Mesh& obj){
   this->indices = new GLuint[this->nrOfIndices];
   for (size_t i = 0; i < this->nrOfIndices; i++){
     this->indices[i] = obj.indices[i];
-  }    
+  }
 
   this->initVAO();
   this->updateModelMatrix();
@@ -145,10 +145,6 @@ void Mesh::move(const glm::vec3 position){
 
 void Mesh::rotate(const glm::vec3 rotation){
   this->rotation += rotation;
-
-  // if(this->rotation > 360){
-  //   // Implement later
-  // }
 }
 
 void Mesh::scaleMesh(const glm::vec3 scale){
@@ -179,14 +175,15 @@ void Mesh::initVAO(void){
   // POSITION
   GLuint attribLoc = this->shader->getAttributeLocation("vertex_position");
   glVertexAttribPointer(
-    attribLoc,
-    3,
-    GL_FLOAT,
-    GL_FALSE,
-    sizeof(Vertex),
-    (GLvoid*)offsetof(Vertex, position)
+    attribLoc,                            // attribute.
+    3,                                    // size
+    GL_FLOAT,                             // type
+    GL_FALSE,                              // normalized?
+    sizeof(Vertex),                       // stride
+    (GLvoid*)offsetof(Vertex, position)   // array buffer offset
   ); // Layout 0 (position)
   glEnableVertexAttribArray(attribLoc);
+
   // COLOR
   attribLoc = this->shader->getAttributeLocation("vertex_color");
   glVertexAttribPointer(
@@ -220,7 +217,7 @@ void Mesh::initVAO(void){
     GL_FALSE,
     sizeof(Vertex),
     (GLvoid*)offsetof(Vertex, normal)
-  ); // Layout 2 (texture coordinate)
+  ); // Layout 3(Color)
   glEnableVertexAttribArray(attribLoc);
 
   // UNBIND

@@ -14,7 +14,6 @@ public:
     glm::vec3 position,
     Material* material,
     Texture* overTexDif,
-    Texture* OverTexSpec,
     vector<Mesh*> meshes);
 
     ~Model();
@@ -22,12 +21,12 @@ public:
     void render(Shader* shader);
     void update(void);
     void updateUniforms(void);
+    void updateDiffuseTex(Texture* texture);
     inline vector<Mesh*> getMeshes(void) { return meshes; }
-    
+
 private:
     Material* material;
     Texture* overideTextureDiffuse;
-    Texture* overideTextureSpecular;
     vector<Mesh*> meshes;
     glm::vec3 position;
 };

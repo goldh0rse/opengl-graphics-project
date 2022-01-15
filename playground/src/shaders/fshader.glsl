@@ -83,7 +83,7 @@ void main() {
   // Final Light
   if (showTexture){
     fs_color =
-      texture(material.diffuseTex, vs_texcoord) *
+      texture(material.diffuseTex, vs_texcoord * -1.f) *
       vec4(
         material.ambient * light.ambient +
         material.diffuse * lambertian +

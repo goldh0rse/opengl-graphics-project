@@ -21,19 +21,24 @@ public:
     glm::vec3 ambient,
     glm::vec3 diffuse,
     glm::vec3 specular,
-    GLint diffuseTex,
-    GLint specularTex
+    GLfloat alpha,
+    GLint diffuseTex
   );
   ~Material(){};
 
   void sendToShader(Shader& program);
+  void updateAmbient(float r, float g, float b);
+  void updateDiffuse(float r, float g, float b);
+  void updateSpecular(float r, float g, float b);
+  void updateAlpha(float alpha);
+  void updateDiffuseTex(GLint diffuseTex);
 
 private:
   glm::vec3 ambient;
   glm::vec3 diffuse;
   glm::vec3 specular;
+  float alpha;
   GLint diffuseTex;
-  GLint specularTex;
 };
 
 
