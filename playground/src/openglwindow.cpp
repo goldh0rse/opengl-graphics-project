@@ -265,15 +265,16 @@ void OpenGLWindow::initLights(void){
 }
 
 void OpenGLWindow::initSkyBox(void){
+  float z = skybox_size;
   float skyBoxVertices[] {
-    -1.0f, -1.0f,  1.0f,//        7--------6
-  	 1.0f, -1.0f,  1.0f,//       /|       /|
-  	 1.0f, -1.0f, -1.0f,//      4--------5 |
-  	-1.0f, -1.0f, -1.0f,//      | |      | |
-  	-1.0f,  1.0f,  1.0f,//      | 3------|-2
-  	 1.0f,  1.0f,  1.0f,//      |/       |/
-  	 1.0f,  1.0f, -1.0f,//      0--------1
-  	-1.0f,  1.0f, -1.0f
+    -z, -z,  z,//        7--------6
+  	 z, -z,  z,//       /|       /|
+  	 z, -z, -z,//      4--------5 |
+  	-z, -z, -z,//      | |      | |
+  	-z,  z,  z,//      | 3------|-2
+  	 z,  z,  z,//      |/       |/
+  	 z,  z, -z,//      0--------1
+  	-z,  z, -z
   };
 
   unsigned int skyBoxIndices[] {

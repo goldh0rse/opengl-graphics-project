@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <limits>
 #include "SOIL2.h"
 
 // GUI
@@ -36,6 +37,10 @@ enum texture_enum   { TEX_CAT = 0, TEX_WOOD, TEX_LOADABLE };
 enum specular_enum  { TEX_CAT_SPECULAR, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
 enum mesh_enum      { MESH_QUAD = 0 };
+
+const float skybox_size = 10000.f;
+
+
 
 class OpenGLWindow {
 public:
