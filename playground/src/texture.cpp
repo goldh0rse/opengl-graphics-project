@@ -28,9 +28,12 @@ Texture::Texture(const char* fileName, GLenum type){
 
   if(img){
     glTexImage2D(
-      type,         0,                GL_RGBA,
-      this->width,  this->height,     0,
-      GL_RGBA,      GL_UNSIGNED_BYTE, img
+      type,
+      0,                 GL_RGBA,
+      this->width,  this->height,
+      0,                 GL_RGBA,
+      GL_UNSIGNED_BYTE,
+      img
     );
     glGenerateMipmap(type);
   } else {

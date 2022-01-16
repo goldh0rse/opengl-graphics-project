@@ -58,6 +58,7 @@ void OpenGLWindow::initialize(void){
     string tempString = "resources/objfiles/cube.obj";
     this->initModels(tempString);
     this->initLights();
+    this->initSkyBox();
     this->initUniforms();
 }
 
@@ -65,13 +66,30 @@ void OpenGLWindow::initialize(void){
 void OpenGLWindow::render(void){
     // Clear
     glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // STENCIL BUFFER NOT USED
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// | GL_STENCIL_BUFFER_BIT); // STENCIL BUFFER NOT USED
 
     this->updateUniforms();
 
     for (auto&i : this->models)
 		  i->render(this->shaders[PHONG_SHADER]);
 
+    // glBindTexture(GL_TEXTURE_2D, 0);
+
+    glDepthFunc(GL_LEQUAL);
+    glm::mat4 projection = glm::mat4(1.f);
+    projection = glm::perspective(glm::radians(45.0f), (float)this->framebufferWidth / this->framebufferHeight, 0.1f, 100.0f);
+    this->shaders[SKYBOX_SHADER]->setMat4fv(this->camera.getViewMatrix(), "view");
+    // this->shaders[SKYBOX_SHADER]->setMat3fv(this->ProjectionMatrix, "projection");
+    this->shaders[SKYBOX_SHADER]->setMat3fv(projection, "projection");
+
+    this->shaders[SKYBOX_SHADER]->use();
+    glBindVertexArray(this->skyBoxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubeMapTexture);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    glDepthFunc(GL_LESS);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -80,8 +98,9 @@ void OpenGLWindow::render(void){
     glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
     glFlush();
 
-    glBindVertexArray(0);
+    // glBindVertexArray(0);
     this->shaders[PHONG_SHADER]->unuse();
+    this->shaders[SKYBOX_SHADER]->unuse();
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -159,14 +178,15 @@ void OpenGLWindow::initOpenGLOptions(void){
     // OPENGL OPTIONS
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_CULL_FACE); // Only draw face that is facing camera
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); // Triangle drawing direction, DEFINES WHICH FACE IS FRONT AND BACK
+    // Cant use culling when using skybox
+    // glEnable(GL_CULL_FACE); // Only draw face that is facing camera
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CCW); // Triangle drawing direction, DEFINES WHICH FACE IS FRONT AND BACK
 
     glEnable(GL_BLEND); // Enable blending of colors
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //GL FILL (Fill the shape with a color)
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //GL FILL (Fill the shape with a color)
 }
 
 void OpenGLWindow::initMatrices(void){
@@ -181,7 +201,8 @@ void OpenGLWindow::initMatrices(void){
 }
 
 void OpenGLWindow::initShaders(void){
-    this->shaders.push_back(new Shader("src/shaders/vshader.glsl", "src/shaders/fshader.glsl", ""));
+    this->shaders.push_back(new Shader("src/shaders/blinn_phong.vert", "src/shaders/blinn_phong.frag", ""));
+    this->shaders.push_back(new Shader("src/shaders/skybox.vert", "src/shaders/skybox.frag", ""));
 }
 
 void OpenGLWindow::initTextures(void){
@@ -243,15 +264,110 @@ void OpenGLWindow::initLights(void){
     );
 }
 
+void OpenGLWindow::initSkyBox(void){
+  float skyBoxVertices[] {
+    -1.0f, -1.0f,  1.0f,//        7--------6
+  	 1.0f, -1.0f,  1.0f,//       /|       /|
+  	 1.0f, -1.0f, -1.0f,//      4--------5 |
+  	-1.0f, -1.0f, -1.0f,//      | |      | |
+  	-1.0f,  1.0f,  1.0f,//      | 3------|-2
+  	 1.0f,  1.0f,  1.0f,//      |/       |/
+  	 1.0f,  1.0f, -1.0f,//      0--------1
+  	-1.0f,  1.0f, -1.0f
+  };
+
+  unsigned int skyBoxIndices[] {
+    // Right
+    1, 2, 6,
+    6, 5, 1,
+    // Left
+    0, 4, 7,
+    7, 3, 0,
+    // Top
+    4, 5, 6,
+    6, 7, 4,
+    // Bottom
+    0, 3, 2,
+    2, 1, 0,
+    // Back
+    0, 1, 5,
+    5, 4, 0,
+    // Front
+    3, 7, 6,
+    6, 2, 3
+  };
+
+  glGenVertexArrays(1, &this->skyBoxVAO);
+  glGenBuffers(1, &this->skyBoxVBO);
+  glGenBuffers(1, &this->skyBoxEBO);
+  glBindVertexArray(this->skyBoxVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, this->skyBoxVAO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(skyBoxVertices), &skyBoxVertices, GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->skyBoxEBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(skyBoxIndices), &skyBoxIndices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  string faceCubeMap[6]{
+    "resources/images/skybox/right.jpg",
+    "resources/images/skybox/left.jpg",
+    "resources/images/skybox/top.jpg",
+    "resources/images/skybox/bottom.jpg",
+    "resources/images/skybox/front.jpg",
+    "resources/images/skybox/back.jpg"
+  };
+
+
+  glGenTextures(1, &this->cubeMapTexture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubeMapTexture);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  cout << "Loading skybox stuff" << endl;
+  for (size_t i = 0; i < 6; i++) {
+    /* code */
+    int width, height, nrChannels;
+    unsigned char* img = stbi_load(faceCubeMap[i].c_str(), &width, &height, &nrChannels, 0);
+    if (img){
+      stbi_set_flip_vertically_on_load(false);
+      glTexImage2D(
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+        0,      GL_RGB,
+        width,  height,
+        0,      GL_RGB,
+        GL_UNSIGNED_BYTE,
+        img
+      );
+      stbi_image_free(img);
+    } else {
+      cout << "Failed to cubemap texture: " << faceCubeMap[i] << endl;
+      stbi_image_free(img);
+    }
+  }
+}
+
 void OpenGLWindow::initUniforms(void){
     // Update ViewMatrix
     // Send Matricies to shader
     this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
     this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
+
     this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
     this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
     this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+
+    // Init skybox uniforms
+    this->shaders[SKYBOX_SHADER]->set1i(0, "skybox");
+    this->shaders[SKYBOX_SHADER]->setMat4fv(this->camera.getViewMatrix(), "view");
+    this->shaders[SKYBOX_SHADER]->setMat4fv(this->ProjectionMatrix, "projection");
+
 }
 
 // Modifiers
