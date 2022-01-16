@@ -8,6 +8,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <SOIL2.h>
+#include "std_image.h"
+
 
 using namespace std;
 
@@ -25,7 +27,7 @@ public:
 
 private:
   GLuint id;
-  int width, height;
+  int width, height, nrChannels;
   unsigned int type;
   GLint textureUnit;
 

@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <limits>
 #include "SOIL2.h"
 
 // GUI
@@ -31,11 +32,15 @@
 using namespace std;
 
 // ENUMERATIONS
-enum shader_enum    { PHONG_SHADER = 0 };
+enum shader_enum    { PHONG_SHADER = 0, SKYBOX_SHADER };
 enum texture_enum   { TEX_CAT = 0, TEX_WOOD, TEX_LOADABLE };
 enum specular_enum  { TEX_CAT_SPECULAR, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
 enum mesh_enum      { MESH_QUAD = 0 };
+
+const float skybox_size = 10000.f;
+
+
 
 class OpenGLWindow {
 public:
@@ -116,6 +121,10 @@ private:
   bool textureShow = false;
   bool loadedNewTexture = false;
 
+  // Skybox
+  unsigned int cubeMapTexture;
+  unsigned int skyBoxVAO, skyBoxVBO, skyBoxEBO;
+
 
   // Shaders
   vector<Shader*> shaders;
@@ -143,6 +152,7 @@ private:
   void initMaterials(void);
   void initModels(string fileName);
   void initLights(void);
+  void initSkyBox(void);
   void initUniforms(void);
 
   void updateUniforms(void);
