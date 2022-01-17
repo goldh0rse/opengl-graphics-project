@@ -32,7 +32,7 @@
 using namespace std;
 
 // ENUMERATIONS
-enum shader_enum    { PHONG_SHADER = 0, SKYBOX_SHADER };
+enum shader_enum    { PHONG_SHADER = 0, GOURAUD_SHADER, SKYBOX_SHADER , GROUND_PLANE_SHADER };
 enum texture_enum   { TEX_CAT = 0, TEX_WOOD, TEX_LOADABLE };
 enum specular_enum  { TEX_CAT_SPECULAR, TEX_WOOD_SPECULAR };
 enum material_enum  { MAT_1 = 0 };
@@ -111,8 +111,6 @@ private:
   bool showGui = true;
 
   // Object file-stuff
-  string objFileName;
-  string objFilePath;
   string objFullPath;
 
   // Texture File Stuff
@@ -121,13 +119,14 @@ private:
   bool textureShow = false;
   bool loadedNewTexture = false;
 
-  // Skybox
+  // Environment (Skybox + Groundplane)
   unsigned int cubeMapTexture;
   unsigned int skyBoxVAO, skyBoxVBO, skyBoxEBO;
-
+  unsigned int groundPlaneVAO, groundPlaneVBO, groundPlaneEBO;
 
   // Shaders
   vector<Shader*> shaders;
+  unsigned int shaderID = PHONG_SHADER;
 
   // Textures
   vector<Texture*> textures;
@@ -153,12 +152,14 @@ private:
   void initModels(string fileName);
   void initLights(void);
   void initSkyBox(void);
+  void initGroundPlane(void);
   void initUniforms(void);
 
   void updateUniforms(void);
   void updateLights(void);
   void updateMaterials(void);
   void updateTextures(void);
+  void updateModel(string fileName);
 
   void DrawGui(void);
   void initImGui(void);

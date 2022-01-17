@@ -19,40 +19,44 @@ in vec3 vs_color;
 in vec2 vs_texcoord;
 in vec3 vs_normal;
 
-out vec4 fs_color;
+out vec4 color;
 
-
-// Uniforms
-uniform Material material;
-uniform Light light;
+uniform mat4 ModelMatrix, ViewMatrix, ProjectionMatrix;
 uniform bool showTexture;
+uniform Light light;
+uniform Material material;
 
 
-void main() {
+void main(){
+  vec4 vertPos4 = ViewMatrix * vec4(vs_position, 1.0);
+  vec3 vertPos = vec3(vertPos4) / vertPos4.w;
+  vec3 normalInterp = vec3(ModelMatrix * vec4(vs_normal, 0.0));
+  gl_Position = ProjectionMatrix * vertPos4;
+
   vec3 N = normalize(vs_normal);
-  vec3 L = normalize(light.position - vs_position);
+  vec3 L = normalize(light.position - vertPos);
 
+  // Lambert's cosine law
   float lambertian = max(dot(N, L), 0.0);
   float specular = 0.0;
-  if(lambertian > 0.0){
-    vec3 R = reflect(-L, N);              // Reflected light vector
-    vec3 V = normalize(-vs_position);     // Vector to viewer
+  if(lambertian > 0.0) {
+    vec3 R = reflect(-L, N);      // Reflected light vector
+    vec3 V = normalize(-vertPos); // Vector to viewer
     // Compute the specular term
     float specAngle = max(dot(R, V), 0.0);
     specular = pow(specAngle, material.alpha);
   }
-
-  // Final Light
   if (showTexture){
-    fs_color =
+    color =
       texture(material.diffuseTex, vs_texcoord * -1.f) *
+      vec4(vs_color * light.color, 1.f) *
       vec4(
         material.ambient * light.ambient +
         material.diffuse * lambertian +
         material.specular * specular * light.color, 1.0
       );
   } else {
-    fs_color =
+    color =
       vec4(vs_color * light.color, 1.f) *
       vec4(
         material.ambient * light.ambient +

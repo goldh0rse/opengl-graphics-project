@@ -59,6 +59,7 @@ void OpenGLWindow::initialize(void){
     this->initModels(tempString);
     this->initLights();
     this->initSkyBox();
+    //this->initGroundPlane();
     this->initUniforms();
 }
 
@@ -71,7 +72,7 @@ void OpenGLWindow::render(void){
     this->updateUniforms();
 
     for (auto&i : this->models)
-		  i->render(this->shaders[PHONG_SHADER]);
+		  i->render(this->shaders[this->shaderID]);
 
     // glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -88,8 +89,12 @@ void OpenGLWindow::render(void){
     glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubeMapTexture);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-
     glDepthFunc(GL_LESS);
+
+    // this->shaders[GROUND_PLANE_SHADER]->use();
+    // glBindVertexArray(this->groundPlaneVAO);
+    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    // glBindVertexArray(0);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -98,9 +103,10 @@ void OpenGLWindow::render(void){
     glfwSwapBuffers(this->window); // Swapping between the buffer being drawn to with the one currently shown
     glFlush();
 
-    // glBindVertexArray(0);
-    this->shaders[PHONG_SHADER]->unuse();
+    this->shaders[this->shaderID]->unuse();
     this->shaders[SKYBOX_SHADER]->unuse();
+    this->shaders[GROUND_PLANE_SHADER]->unuse();
+    glBindVertexArray(0);
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -202,7 +208,9 @@ void OpenGLWindow::initMatrices(void){
 
 void OpenGLWindow::initShaders(void){
     this->shaders.push_back(new Shader("src/shaders/blinn_phong.vert", "src/shaders/blinn_phong.frag", ""));
+    this->shaders.push_back(new Shader("src/shaders/gouraud.vert", "src/shaders/gouraud.frag", ""));
     this->shaders.push_back(new Shader("src/shaders/skybox.vert", "src/shaders/skybox.frag", ""));
+    this->shaders.push_back(new Shader("src/shaders/ground_plane.vert", "src/shaders/ground_plane.frag", ""));
 }
 
 void OpenGLWindow::initTextures(void){
@@ -229,7 +237,7 @@ void OpenGLWindow::initModels(string fileName) {
 
     meshes.push_back(
         new Mesh(
-            this->shaders[PHONG_SHADER],
+            this->shaders[this->shaderID],
             mesh.data(), mesh.size(),
             NULL, 0,
             glm::vec3(1.f, 0.f, 0.f),
@@ -239,10 +247,6 @@ void OpenGLWindow::initModels(string fileName) {
         )
     );
 
-    if(this->models.size() > 0){
-      this->models.clear();
-    }
-
     this->models.push_back(new Model(
         glm::vec3(0.f),
         this->materials[MAT_1],
@@ -251,7 +255,6 @@ void OpenGLWindow::initModels(string fileName) {
     ));
 
     meshes.clear();
-
 }
 
 void OpenGLWindow::initLights(void){
@@ -330,7 +333,6 @@ void OpenGLWindow::initSkyBox(void){
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-  cout << "Loading skybox stuff" << endl;
   for (size_t i = 0; i < 6; i++) {
     /* code */
     int width, height, nrChannels;
@@ -353,28 +355,62 @@ void OpenGLWindow::initSkyBox(void){
   }
 }
 
+void OpenGLWindow::initGroundPlane(void){
+  float i = skybox_size;
+  float groundPlaneVertices[] {
+    -i,  -1.f,  -i, //
+    -i,  -1.f,   i, //
+     i,  -1.f,   i, //
+     i,  -1.f,  -i  //
+  };
+
+  unsigned int groundPlaneIndices[]{
+    0, 1, 2,
+    2, 3, 0
+  };
+
+  glGenVertexArrays(1, &this->groundPlaneVAO);
+  glGenBuffers(1, &this->groundPlaneVBO);
+  glGenBuffers(1, &this->groundPlaneEBO);
+  glBindVertexArray(this->groundPlaneVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, this->groundPlaneVAO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(groundPlaneVertices), &groundPlaneVertices, GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->groundPlaneEBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(groundPlaneIndices), &groundPlaneIndices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+}
+
+
 void OpenGLWindow::initUniforms(void){
-    // Update ViewMatrix
     // Send Matricies to shader
-    this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-    this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+    this->shaders[this->shaderID]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+    this->shaders[this->shaderID]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 
 
-    this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
-    this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
-    this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+    this->lights[0]->sendToShader(*this->shaders[this->shaderID]);
+    this->shaders[this->shaderID]->set1i(this->textureShow, "showTexture");
+    this->shaders[this->shaderID]->setVec3f(this->camera.getCamPosition(), "cameraPos");
 
     // Init skybox uniforms
     this->shaders[SKYBOX_SHADER]->set1i(0, "skybox");
     this->shaders[SKYBOX_SHADER]->setMat4fv(this->camera.getViewMatrix(), "view");
     this->shaders[SKYBOX_SHADER]->setMat4fv(this->ProjectionMatrix, "projection");
 
+    // Init ground plane uniforms
+    // this->shaders[GROUND_PLANE_SHADER]->set1i(0, ):
+    // this->shaders[GROUND_PLANE_SHADER]->set1i(this->camera.nearPlane, "iNearPositionVert")
+
 }
 
 // Modifiers
 void OpenGLWindow::updateUniforms(void){
   this->updateLights();
-  this->lights[0]->sendToShader(*this->shaders[PHONG_SHADER]);
+  this->lights[0]->sendToShader(*this->shaders[this->shaderID]);
 
   this->updateTextures();
   this->updateMaterials();
@@ -382,9 +418,9 @@ void OpenGLWindow::updateUniforms(void){
   // Update ViewMatrix
   this->camera.updateViewMatrix();
 
-  this->shaders[PHONG_SHADER]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
-  this->shaders[PHONG_SHADER]->setVec3f(this->camera.getCamPosition(), "cameraPos");
-  this->shaders[PHONG_SHADER]->set1i(this->textureShow, "showTexture");
+  this->shaders[this->shaderID]->setMat4fv(this->camera.getViewMatrix(), "ViewMatrix");
+  this->shaders[this->shaderID]->setVec3f(this->camera.getCamPosition(), "cameraPos");
+  this->shaders[this->shaderID]->set1i(this->textureShow, "showTexture");
   // Update framebuffersize & ProjectionMatrix
   glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
@@ -417,7 +453,35 @@ void OpenGLWindow::updateUniforms(void){
     this->ProjectionMatrix *= h_alpha;
   }
 
-  this->shaders[PHONG_SHADER]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+  this->shaders[this->shaderID]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
+}
+
+void OpenGLWindow::updateModel(string fileName){
+  vector<Mesh*> meshes;
+  vector<Vertex> mesh = loadObject(fileName);
+
+  meshes.push_back(
+      new Mesh(
+          this->shaders[this->shaderID],
+          mesh.data(), mesh.size(),
+          NULL, 0,
+          glm::vec3(1.f, 0.f, 0.f),
+          glm::vec3(0.f),
+          glm::vec3(0.f),
+          glm::vec3(1.f)
+      )
+  );
+
+  this->models.pop_back(); // Remove last object
+
+  this->models.push_back(new Model(
+      glm::vec3(0.f),
+      this->materials[MAT_1],
+      this->textures[TEX_WOOD],
+      meshes
+  ));
+
+  meshes.clear();
 }
 
 void OpenGLWindow::updateLights(void){
@@ -467,7 +531,6 @@ void OpenGLWindow::updateMaterials(void){
 }
 
 void OpenGLWindow::updateTextures(void){
-  // this->shader[PHONG_SHADER]
   if(this->loadedNewTexture){
     // Update materials
     for(auto &i: this->models){
@@ -514,7 +577,7 @@ void OpenGLWindow::DrawGui(void){
 
               cout << "OBJ file: " << this->objFullPath << endl;
 
-              this->initModels(this->objFullPath);
+              this->updateModel(this->objFullPath);
           }
           // close
           igfd::ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");

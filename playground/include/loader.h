@@ -18,7 +18,7 @@
 
 using namespace std;
 
-const float radius = sqrt(2);
+const float radius = 2.f;
 
 static vector<Vertex> loadObject(string file_name){
     //Vertex portions
@@ -233,7 +233,7 @@ static vector<Vertex> loadObject(string file_name){
 			float a, b, c, delta;
 			a = dot(vertices[i].normal, vertices[i].normal);
 			b = 2*(dot(vertices[i].position, vertices[i].normal));
-			c = dot(vertices[i].position, vertices[i].position) - (radius * radius);
+			c = dot(vertices[i].position, vertices[i].position) - radius;
 			delta = pow(b, 2) - 4*a*c;
 
 			float q = -0.5f * (b + ((b > 0) - (b < 0))*sqrt(delta));
@@ -250,7 +250,7 @@ static vector<Vertex> loadObject(string file_name){
 
 			glm::vec3 p = vertices[i].position + d*vertices[i].normal;
 			p = normalize(p);
-			vertices[i].texcoord.s = acos(p.x / radius);
+			vertices[i].texcoord.s = acos(p.x / sqrt(radius));
 			vertices[i].texcoord.t = atan(p.z / p.y);
 		}
 
