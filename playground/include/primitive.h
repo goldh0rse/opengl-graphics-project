@@ -1,3 +1,13 @@
+/* primitive.h - Header file for the primitive class.
+ *
+ * @description - In general a helper class used during the development,
+ *                mainly used as a class that hold stativ shapes
+ *                (cubes, planes & such)
+ * @note        - Deprecated!!!
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 #ifndef PRIMITIVE_H_
 #define PRIMITIVE_H_
 #include <vector>
@@ -28,7 +38,6 @@ private:
 
 };
 
-// TEST PRIMITIVES QUAD CLASS
 class Quad : public Primitive {
 public:
   Quad() : Primitive() {
@@ -53,34 +62,31 @@ public:
   }
 };
 
-class Pyramid : public Primitive
-{
+class Pyramid : public Primitive {
 public:
-	Pyramid()
-		: Primitive()
-	{
+	Pyramid() : Primitive() {
 		Vertex vertices[] =
 		{
-			//Position								//Color							//Texcoords					//Normals
+			//Position								      //Color							        //Texcoords					    //Normals
 			//Triangle front
-			glm::vec3(0.f, 0.5f, 0.f),				glm::vec3(1.f, 0.f, 0.f),		glm::vec2(0.5f, 1.f),		glm::vec3(0.f, 0.f, 1.f),
-			glm::vec3(-0.5f, -0.5f, 0.5f),			glm::vec3(0.f, 1.f, 0.f),		glm::vec2(0.f, 0.f),		glm::vec3(0.f, 0.f, 1.f),
-			glm::vec3(0.5f, -0.5f, 0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(0.f, 0.f, 1.f),
+			glm::vec3(0.f, .5f, 0.f),				glm::vec3(1.f, 0.f, 0.f),		glm::vec2(.5f, 1.f),		glm::vec3(0.f, 0.f, 1.f),
+			glm::vec3(-.5f, -.5f, .5f),			glm::vec3(0.f, 1.f, 0.f),		glm::vec2(0.f, 0.f),		glm::vec3(0.f, 0.f, 1.f),
+			glm::vec3(.5f, -.5f, .5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(0.f, 0.f, 1.f),
 
 			//Triangle left
-			glm::vec3(0.f, 0.5f, 0.f),				glm::vec3(1.f, 1.f, 0.f),		glm::vec2(0.5f, 1.f),		glm::vec3(-1.f, 0.f, 0.f),
-			glm::vec3(-0.5f, -0.5f, -0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(0.f, 0.f),		glm::vec3(-1.f, 0.f, 0.f),
-			glm::vec3(-0.5f, -0.5f, 0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(-1.f, 0.f, 0.f),
+			glm::vec3(0.f, .5f, 0.f),				glm::vec3(1.f, 1.f, 0.f),		glm::vec2(.5f, 1.f),		glm::vec3(-1.f, 0.f, 0.f),
+			glm::vec3(-.5f, -.5f, -.5f),		glm::vec3(0.f, 0.f, 1.f),		glm::vec2(0.f, 0.f),		glm::vec3(-1.f, 0.f, 0.f),
+			glm::vec3(-.5f, -.5f, .5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(-1.f, 0.f, 0.f),
 
 			//Triangle back
-			glm::vec3(0.f, 0.5f, 0.f),				glm::vec3(1.f, 1.f, 0.f),		glm::vec2(0.5f, 1.f),		glm::vec3(0.f, 0.f, -1.f),
-			glm::vec3(0.5f, -0.5f, -0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(0.f, 0.f),		glm::vec3(0.f, 0.f, -1.f),
-			glm::vec3(-0.5f, -0.5f, -0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(0.f, 0.f, -1.f),
+			glm::vec3(0.f, .5f, 0.f),				glm::vec3(1.f, 1.f, 0.f),		glm::vec2(.5f, 1.f),		glm::vec3(0.f, 0.f, -1.f),
+			glm::vec3(.5f, -.5f, -.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(0.f, 0.f),		glm::vec3(0.f, 0.f, -1.f),
+			glm::vec3(-.5f, -.5f, -.5f),		glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(0.f, 0.f, -1.f),
 
 			//Triangles right
-			glm::vec3(0.f, 0.5f, 0.f),				glm::vec3(1.f, 1.f, 0.f),		glm::vec2(0.5f, 1.f),		glm::vec3(1.f, 0.f, 0.f),
-			glm::vec3(0.5f, -0.5f, 0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(0.f, 0.f),		glm::vec3(1.f, 0.f, 0.f),
-			glm::vec3(0.5f, -0.5f, -0.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(1.f, 0.f, 0.f),
+			glm::vec3(0.f, .5f, 0.f),				glm::vec3(1.f, 1.f, 0.f),		glm::vec2(.5f, 1.f),		glm::vec3(1.f, 0.f, 0.f),
+			glm::vec3(.5f, -.5f, .5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(0.f, 0.f),		glm::vec3(1.f, 0.f, 0.f),
+			glm::vec3(.5f, -.5f, -.5f),			glm::vec3(0.f, 0.f, 1.f),		glm::vec2(1.f, 0.f),		glm::vec3(1.f, 0.f, 0.f),
 		};
 		unsigned nrOfVertices = sizeof(vertices) / sizeof(Vertex);
 

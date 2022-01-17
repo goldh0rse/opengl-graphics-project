@@ -1,6 +1,12 @@
+/* mesh.cpp - Method definitions for the Mesh class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
+
 #include "mesh.h"
 
-/** PUBLIC ********************************************************************/
 Mesh::Mesh(
   Shader* shader,
   Vertex* vertices, const unsigned& nrOfVertices,
@@ -29,7 +35,7 @@ Mesh::Mesh(
     }
 
 
-    this->initVAO();
+    this->initBuffers();
     this->updateModelMatrix();
 };
 
@@ -58,12 +64,11 @@ Mesh::Mesh(
       this->indices[i] = primitive->getIndices()[i];
     }
 
-    this->initVAO();
+    this->initBuffers();
     this->updateModelMatrix();
 };
 
 Mesh::Mesh(const Mesh& obj){
-
   this->shader = obj.shader;
   this->position = obj.position;
   this->origin = obj.origin;
@@ -82,7 +87,7 @@ Mesh::Mesh(const Mesh& obj){
     this->indices[i] = obj.indices[i];
   }
 
-  this->initVAO();
+  this->initBuffers();
   this->updateModelMatrix();
 }
 
@@ -96,10 +101,6 @@ Mesh::~Mesh(){
 
   delete[] this->vertices;
   delete[] this->indices;
-}
-
-void Mesh::update(void){
-
 }
 
 void Mesh::render(void){
@@ -123,22 +124,6 @@ void Mesh::render(void){
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Mesh::setPosition(const glm::vec3 position){
-  this->position = position;
-}
-
-void Mesh::setOrigin(const glm::vec3 origin){
-  this->origin = origin;
-}
-
-void Mesh::setRotation(const glm::vec3 rotation){
-  this->rotation = rotation;
-}
-
-void Mesh::setScale(const glm::vec3 scale){
-  this->scale = scale;
-}
-
 void Mesh::move(const glm::vec3 position){
   this->position += position;
 }
@@ -147,14 +132,11 @@ void Mesh::rotate(const glm::vec3 rotation){
   this->rotation += rotation;
 }
 
-void Mesh::scaleMesh(const glm::vec3 scale){
-  this->scale += scale;
+void Mesh::scaleMesh(const glm::vec3 scalar){
+  this->scale += scalar;
 }
 
-
-
-/** PRIVATE *******************************************************************/
-void Mesh::initVAO(void){
+void Mesh::initBuffers(void){
   // GEN & BIND VAO
   glCreateVertexArrays(1, &this->vao);
   glBindVertexArray(this->vao); // "Putting our box infront of us"
@@ -178,7 +160,7 @@ void Mesh::initVAO(void){
     attribLoc,                            // attribute.
     3,                                    // size
     GL_FLOAT,                             // type
-    GL_FALSE,                              // normalized?
+    GL_FALSE,                             // normalize?
     sizeof(Vertex),                       // stride
     (GLvoid*)offsetof(Vertex, position)   // array buffer offset
   ); // Layout 0 (position)
@@ -226,7 +208,6 @@ void Mesh::initVAO(void){
 
 void Mesh::updateModelMatrix(void){
   this->ModelMatrix = glm::mat4(1.f);
-  // this->ModelMatrix = glm::translate(this->ModelMatrix, this->position);
   this->ModelMatrix = glm::translate(this->ModelMatrix, this->origin);
   this->ModelMatrix = glm::rotate(this->ModelMatrix, glm::radians(this->rotation.x), glm::vec3(1.f, 0.f, 0.f));
   this->ModelMatrix = glm::rotate(this->ModelMatrix, glm::radians(this->rotation.y), glm::vec3(0.f, 1.f, 0.f));

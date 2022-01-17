@@ -1,14 +1,15 @@
+/* texture.cpp - Method definitions for the Texture class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
+
 #include "texture.h"
 
 
 Texture::Texture(const char* fileName, GLenum type){
   this->type = type;
-  // unsigned char* img = SOIL_load_image(
-  //   fileName,
-  //   &this->width, &this->height,
-  //   0, SOIL_LOAD_RGBA
-  // );
-
 
   glGenTextures(1, &this->id);
   glBindTexture(type, this->id);
@@ -38,12 +39,10 @@ Texture::Texture(const char* fileName, GLenum type){
     glGenerateMipmap(type);
   } else {
     cout << "Image texture loading failed: " << fileName << endl;
-    //cout << SOIL_last_result() << endl;
   }
 
   glActiveTexture(0);
   glBindTexture(type, 0); // UNDBIND GL_TEXTURE_2D
-  //SOIL_free_image_data(img);
   stbi_image_free(img);
 }
 

@@ -1,19 +1,17 @@
+/* light.cpp - Method definitions for the Light class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 #include "light.h"
 
-
-/*--PUBLIC--------------------------------------------------------------------*/
 Light::Light(glm::vec3 position, glm::vec3 color, glm::vec3 ambient){
   this->position = position;
   this->color = color;
   this->ambient = ambient;
 }
 
-Light::~Light(void){
-  // delete this->position;
-  // delete this->color;
-}
-
-/*--PRIVATE-------------------------------------------------------------------*/
 void Light::updatePosition(float x, float y, float z){
   this->position.x = x;
   this->position.y = y;

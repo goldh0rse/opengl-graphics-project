@@ -1,3 +1,9 @@
+/* material.cpp - The method definitions of the Material Class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 #include "material.h"
 
 Material::Material(

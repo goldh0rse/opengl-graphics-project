@@ -1,6 +1,11 @@
-#include "openglwindow.h"
+/* openglwindow.cpp - Method definitions for the OpenGLWindow class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 
-using namespace std;
+#include "openglwindow.h"
 
 /*                           PUBLIC                                           */
 /******************************************************************************/
@@ -134,7 +139,6 @@ void OpenGLWindow::start(void){
 
 /*                           PRIVATE                                          */
 /******************************************************************************/
-// Initializers
 void OpenGLWindow::initGLFW(void){
     // Initialize glfw
     if (!glfwInit()){
@@ -369,13 +373,13 @@ void OpenGLWindow::initGroundPlane(void){
     2, 3, 0
   };
 
-  glGenVertexArrays(1, &this->groundPlaneVAO);
-  glGenBuffers(1, &this->groundPlaneVBO);
-  glGenBuffers(1, &this->groundPlaneEBO);
-  glBindVertexArray(this->groundPlaneVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, this->groundPlaneVAO);
+  glGenVertexArrays(1, &this->groundVAO);
+  glGenBuffers(1, &this->groundVBO);
+  glGenBuffers(1, &this->groundEBO);
+  glBindVertexArray(this->groundVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, this->groundVAO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(groundPlaneVertices), &groundPlaneVertices, GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->groundPlaneEBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->groundEBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(groundPlaneIndices), &groundPlaneIndices, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
@@ -534,7 +538,8 @@ void OpenGLWindow::updateTextures(void){
   if(this->loadedNewTexture){
     // Update materials
     for(auto &i: this->models){
-      i->updateDiffuseTex(this->textures[TEX_LOADABLE]);
+      i->setDiffuseTex(this->textures[TEX_LOADABLE]);
+      // i->updateDiffuseTex(this->textures[TEX_LOADABLE]);
     }
     this->loadedNewTexture = false;
   }
@@ -614,7 +619,6 @@ void OpenGLWindow::DrawGui(void){
 
   if (ImGui::CollapsingHeader("Object Texture")) {
       ImGui::Checkbox("Show texture", &this->textureShow);
-      ImGui::Text("Texture file: %s", textureFileName.c_str());
       if (ImGui::Button("Open Texture File"))
           igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Select Texture File",
                                                         ".bmp,.dds,.hdr,.pic,.png,.psd,.jpg,.tga", ".");
@@ -630,7 +634,6 @@ void OpenGLWindow::DrawGui(void){
                 new Texture(this->textureFilePath.c_str(), GL_TEXTURE_2D)
               );
               this->loadedNewTexture = true;
-
           } else {
               // Return a message to the user if the file could not be opened
               this->loadedNewTexture = false;

@@ -1,6 +1,13 @@
+/* primitive.cpp - Method definitions for the Primitive class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
+
 #include "primitive.h"
 
-Primitive::Primitive(){}
+Primitive::Primitive(void){}
 
 void Primitive::set(
   const Vertex* vertices, const unsigned nrOfVertices,

@@ -1,3 +1,9 @@
+/* vertex.h - Vertex struct.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 #ifndef VERTEX_H_
 #define VERTEX_H_
 

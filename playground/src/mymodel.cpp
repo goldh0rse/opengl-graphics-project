@@ -1,3 +1,9 @@
+/* mymodel.h - Header file for the Model class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 #include "mymodel.h"
 
 Model::Model(
@@ -8,7 +14,7 @@ Model::Model(
 ){
     this->position = position;
     this->material = material;
-    this->overideTextureDiffuse = overTexDif;
+    this->diffuseTex = overTexDif;
     for(auto*i : meshes){
         this->meshes.push_back(new Mesh(*i));
     }
@@ -19,19 +25,12 @@ Model::Model(
     }
 }
 
-Model::~Model(){
+Model::~Model(void){
     this->meshes.clear();
 }
 
-// Public Functions
-void Model::update(void){
-
-}
 
 void Model::render(Shader* shader){
-    //Update the uniforms
-    this->updateUniforms();
-
     //Update uniforms
     this->material->sendToShader(*shader);
 
@@ -41,17 +40,7 @@ void Model::render(Shader* shader){
     //Draw
     for (auto& i : this->meshes){
         //Activate texture for each mesh
-        this->overideTextureDiffuse->bind(0);
-
-        i->render(); //Activates shader also
+        this->diffuseTex->bind(0);
+        i->render(); //Activates shader & renders mesh
     }
-}
-
-// Private functions
-void Model::updateUniforms(void){
-
-}
-
-void Model::updateDiffuseTex(Texture* texture){
-  this->overideTextureDiffuse = texture;
 }

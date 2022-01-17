@@ -1,6 +1,12 @@
+/* shader.cpp - Method definitions for the Shader class.
+ *
+ * @author      - Klas Holmberg
+ * @email       - hed16khg@cs.umu.se
+ * @date        - 2022-01-13
+ */
 #include "shader.h"
 
-// Public
+
 Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile){
   GLuint vShader = 0;
   GLuint fShader = 0;
@@ -17,61 +23,6 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geo
 
 }
 
-void Shader::use(void){
-  glUseProgram(this->id);
-}
-
-void Shader::unuse(void){
-  glUseProgram(0);
-}
-
-GLuint Shader::getAttributeLocation(const char* name){
-  return glGetAttribLocation(this->id, name);
-}
-
-void Shader::setVec1f(GLfloat value, const GLchar* name){
-  this->use();
-  glUniform1f(glGetUniformLocation(this->id, name), value);
-  this->unuse();
-}
-
-void Shader::setVec2f(glm::fvec2 value, const GLchar* name){
-  this->use();
-  glUniform2fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
-  this->unuse();
-}
-
-void Shader::setVec3f(glm::fvec3 value, const GLchar* name){
-  this->use();
-  glUniform3fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
-  this->unuse();
-}
-
-void Shader::setMat3fv(glm::mat3 value, const GLchar* name, GLboolean transpose){
-  this->use();
-  glUniformMatrix3fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
-  this->unuse();
-}
-
-void Shader::setMat4fv(glm::mat4 value, const GLchar* name, GLboolean transpose){
-  this->use();
-  glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
-  this->unuse();
-}
-
-void Shader::set1i(GLint value, const GLchar* name){
-  this->use();
-  glUniform1i(glGetUniformLocation(this->id, name), value);
-  this->unuse();
-}
-
-void Shader::set1f(GLfloat value, const GLchar* name){
-  this->use();
-  glUniform1f(glGetUniformLocation(this->id, name), value);
-  this->unuse();
-}
-
-// Private
 string Shader::loadShaderSource(const char* fileName){
   string temp = "";
   string src = "";
@@ -150,4 +101,58 @@ void Shader::linkProgram(
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
+}
+
+void Shader::use(void){
+  glUseProgram(this->id);
+}
+
+void Shader::unuse(void){
+  glUseProgram(0);
+}
+
+GLuint Shader::getAttributeLocation(const char* name){
+  return glGetAttribLocation(this->id, name);
+}
+
+void Shader::setVec1f(GLfloat value, const GLchar* name){
+  this->use();
+  glUniform1f(glGetUniformLocation(this->id, name), value);
+  this->unuse();
+}
+
+void Shader::setVec2f(glm::fvec2 value, const GLchar* name){
+  this->use();
+  glUniform2fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
+  this->unuse();
+}
+
+void Shader::setVec3f(glm::fvec3 value, const GLchar* name){
+  this->use();
+  glUniform3fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
+  this->unuse();
+}
+
+void Shader::setMat3fv(glm::mat3 value, const GLchar* name, GLboolean transpose){
+  this->use();
+  glUniformMatrix3fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
+  this->unuse();
+}
+
+void Shader::setMat4fv(glm::mat4 value, const GLchar* name, GLboolean transpose){
+  this->use();
+  glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
+  this->unuse();
+}
+
+void Shader::set1i(GLint value, const GLchar* name){
+  this->use();
+  glUniform1i(glGetUniformLocation(this->id, name), value);
+  this->unuse();
+}
+
+void Shader::set1f(GLfloat value, const GLchar* name){
+  this->use();
+  glUniform1f(glGetUniformLocation(this->id, name), value);
+  this->unuse();
 }
