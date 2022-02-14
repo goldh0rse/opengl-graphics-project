@@ -14,6 +14,8 @@ struct Light {
   vec3 ambient;
 };
 
+
+
 in vec3 vs_position;
 in vec3 vs_color;
 in vec2 vs_texcoord;
@@ -26,7 +28,7 @@ out vec4 fs_color;
 uniform Material material;
 uniform Light light;
 uniform bool showTexture;
-
+uniform vec3 cameraPos;
 
 void main() {
   vec3 N = normalize(vs_normal);
@@ -35,8 +37,9 @@ void main() {
   float lambertian = max(dot(N, L), 0.0);
   float specular = 0.0;
   if(lambertian > 0.0){
-    vec3 R = reflect(-L, N);              // Reflected light vector
-    vec3 V = normalize(-vs_position);     // Vector to viewer
+    vec3 R = reflect(-L, N);                      // Reflected light vector
+    vec3 V = normalize(cameraPos - vs_position);  // Vector to viewer
+
     // Compute the specular term
     float specAngle = max(dot(R, V), 0.0);
     specular = pow(specAngle, material.alpha);

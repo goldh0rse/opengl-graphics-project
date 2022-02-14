@@ -9,7 +9,6 @@
 
 /*                           PUBLIC                                           */
 /******************************************************************************/
-// Constructors & Destructors
 OpenGLWindow::OpenGLWindow(
     const char* title,
     const int WINDOW_WIDTH, const int WINDOW_HEIGHT,
@@ -40,7 +39,6 @@ OpenGLWindow::OpenGLWindow(
 }
 
 OpenGLWindow::~OpenGLWindow(void){
-    // Cleanup ImGui
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -161,7 +159,7 @@ void OpenGLWindow::initWindow(const char* title, bool resizable){
         cerr << "Could not open window or initialize OpenGL context." << endl;
         exit(EXIT_FAILURE);
     }
-    // glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
     glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
     glfwMakeContextCurrent(this->window); // NOW GLEW CAN INITIALIZE
@@ -191,12 +189,15 @@ void OpenGLWindow::initOpenGLOptions(void){
     // Cant use culling when using skybox
     // glEnable(GL_CULL_FACE); // Only draw face that is facing camera
     // glCullFace(GL_BACK);
-    // glFrontFace(GL_CCW); // Triangle drawing direction, DEFINES WHICH FACE IS FRONT AND BACK
-
-    glEnable(GL_BLEND); // Enable blending of colors
+    //
+    // // Triangle drawing direction, DEFINES WHICH FACE IS FRONT AND BACK
+    // glFrontFace(GL_CCW);
+    //
+    // glEnable(GL_BLEND); // Enable blending of colors
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //GL FILL (Fill the shape with a color)
+    //GL FILL (Fill the shape with a color)
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void OpenGLWindow::initMatrices(void){

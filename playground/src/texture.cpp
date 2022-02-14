@@ -16,14 +16,13 @@ Texture::Texture(const char* fileName, GLenum type){
 
   glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);   // Magnification
+  glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    // Magnification
   glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // Minification
-
 
   unsigned char *img = stbi_load(
     fileName,
     &this->width, &this->height, &this->nrChannels,
-    0
+    4 // Read channel count
   );
 
 
